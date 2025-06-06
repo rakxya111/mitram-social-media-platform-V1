@@ -33,5 +33,5 @@
       ]
     }
   },
-  "include": ["src", "tailwind.config.js"]
+  "include": ["src", "frontend/tailwind.config.js"]
 }
