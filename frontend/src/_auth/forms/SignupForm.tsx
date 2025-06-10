@@ -7,8 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { SignupValidation } from "@/lib/validation";
 import { Loader } from "lucide-react";
+import * as z from "zod";
 // import { createUserAccount } from "@/lib/appwrite/api";
-
 
 
 const SignupForm = () => {
