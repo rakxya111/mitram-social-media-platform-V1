@@ -222,9 +222,10 @@
     @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2;
   }
 
-  .leftsidebar-link {
-    @apply rounded-lg base-medium hover:bg-primary-500 transition;
-  }
+.leftsidebar-link {
+  @apply rounded-lg base-medium hover:bg-rose-900 transition;
+}
+
 
   /* Post Card */
   .post-card {
