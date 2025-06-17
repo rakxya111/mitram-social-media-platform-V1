@@ -9,17 +9,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { SigninValidation } from "@/lib/validation";
 import { Loader } from "lucide-react";
+import axiosInstance from "@/lib/axios/axiosInstance";
 
 const SigninForm = () => {
   const isLoading = false;
 
-  // 1. Define your form.
-
+  const navigate = useNavigate();
+ 
   const form = useForm<z.infer<typeof SigninValidation>>({
     resolver: zodResolver(SigninValidation),
     defaultValues: {
@@ -28,12 +29,22 @@ const SigninForm = () => {
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SigninValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
+
+  const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
+    try {
+      const res = await axiosInstance.post("login/", values);
+      
+      // Extract tokens from the nested tokens object
+      const { tokens } = res.data;
+      const { access, refresh } = tokens;
+      
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+      navigate("/");
+    } catch (err: any) {
+      console.error("Login failed:", err.response?.data || err.message);
+    }
+  };
 
   return (
     <Form {...form}>

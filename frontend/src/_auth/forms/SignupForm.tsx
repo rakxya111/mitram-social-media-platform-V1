@@ -1,18 +1,19 @@
-// import React from "react";
 import {Form,FormControl,FormField,FormItem,FormLabel,FormMessage,} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { SignupValidation } from "@/lib/validation";
 import { Loader } from "lucide-react";
 import * as z from "zod";
-// import { createUserAccount } from "@/lib/appwrite/api";
+import axiosInstance from "@/lib/axios/axiosInstance";
+
 
 
 const SignupForm = () => {
 
+  const navigate = useNavigate();
   const isLoading = false;
 
   // 1. Define your form.
@@ -24,15 +25,25 @@ const SignupForm = () => {
       username: "",
       email:'',
       password: '',
+      password_confirm: '',
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SignupValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values)
+  
+  const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
+   try{
+    const res = await axiosInstance.post("register/",values);
+    console.log("Registered:", res.data);
+    navigate("/sign-in");
+   }catch (err: any) {
+  if (err.response && err.response.data) {
+    console.log("Signup error:", err.response.data);
+  } else {
+    console.log("Signup error:", err.message);
   }
+}
+
+  };
 
   return (
 
@@ -99,6 +110,21 @@ const SignupForm = () => {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="password_confirm"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <Input type="password" className="shad-input" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
          
           <Button type="submit" className="shad-button_primary mt-5">
             {isLoading ? (
