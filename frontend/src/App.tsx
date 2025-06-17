@@ -6,7 +6,7 @@ import SignupForm from './_auth/forms/SignupForm';
 import RootLayout from './_root/RootLayout';
 import './globals.css'; 
 import { Toaster } from "@/components/ui/toaster"
-import Home from './_root/pages/Home'; // or whatever your correct path is
+import Home from './_root/pages/Home'; 
 
 const App = () => {
   return (

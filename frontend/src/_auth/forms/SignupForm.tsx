@@ -8,13 +8,15 @@ import { SignupValidation } from "@/lib/validation";
 import { Loader } from "lucide-react";
 import * as z from "zod";
 import axiosInstance from "@/lib/axios/axiosInstance";
-
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 
 const SignupForm = () => {
 
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
 
   // 1. Define your form.
 
@@ -31,15 +33,19 @@ const SignupForm = () => {
 
   
   const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
+    setIsLoading(true);
    try{
     const res = await axiosInstance.post("register/",values);
     console.log("Registered:", res.data);
+    toast({title : "Account created successfully! Please log in."});
     navigate("/sign-in");
    }catch (err: any) {
   if (err.response && err.response.data) {
     console.log("Signup error:", err.response.data);
+      toast({title : "Something went wrong. Please try again."});
   } else {
     console.log("Signup error:", err.message);
+    toast({title : "Signup error"});
   }
 }
 

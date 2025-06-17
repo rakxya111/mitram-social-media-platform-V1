@@ -15,10 +15,12 @@ import { useForm } from "react-hook-form";
 import { SigninValidation } from "@/lib/validation";
 import { Loader } from "lucide-react";
 import axiosInstance from "@/lib/axios/axiosInstance";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const SigninForm = () => {
-  const isLoading = false;
-
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const navigate = useNavigate();
  
   const form = useForm<z.infer<typeof SigninValidation>>({
@@ -31,6 +33,7 @@ const SigninForm = () => {
 
 
   const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
+    setIsLoading(true)
     try {
       const res = await axiosInstance.post("login/", values);
       
@@ -40,9 +43,11 @@ const SigninForm = () => {
       
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
+      toast({title : "Login successful!!"});
       navigate("/");
     } catch (err: any) {
       console.error("Login failed:", err.response?.data || err.message);
+      toast({title : "Login failed"});
     }
   };
 
