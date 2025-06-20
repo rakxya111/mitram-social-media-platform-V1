@@ -1,44 +1,45 @@
+import uuid
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.conf import settings
 
-# Create your models here.
+User = get_user_model()
 
-# class Post(models.Model):
-#     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
-#     caption = models.TextField(blank=True, null=True)
-#     tags = models.CharField(max_length=255, blank=True, null=True)
-#     image = models.ImageField(upload_to='post_images/')
-#     imageId = models.CharField(max_length=255)
-#     location = models.CharField(max_length=255, blank=True, null=True)
-
-#     likes = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Like', related_name='liked_posts', blank=True)
-#     save = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Save', related_name='saved_posts', blank=True)
-
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.creator.username}'s post"
-
-
-# class Save(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-#     saved_at = models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         unique_together = ('user', 'post') #To prevent duplicate saves
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
     
-#     def __str__(self):
-#         return f"{self.user.username} saved {self.post.id}"
-    
-# class Like(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     post = models.ForeignKey('Post', on_delete=models.CASCADE)
-#     liked_at = models.DateTimeField(auto_now_add=True)
 
-#     class Meta:
-#         unique_together = ('user', 'post')  # ensures one like per post per user
+    class Meta:
+        unique_together = ('user', 'post')
 
-#     def __str__(self):
-#         return f"{self.user.username} liked {self.post.id}"
+    def __str__(self):
+        return f"{self.user.username} liked post {self.post.id}"
 
+class Save(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'post')
+
+    def __str__(self):
+        return f"{self.user.username} saved post {self.post.id}"
+
+class Post(models.Model):
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    caption = models.TextField(blank=True)
+    tags = models.CharField(max_length=255, blank=True)
+    image = models.ImageField(upload_to='post_images/', blank=False, null=False)
+    imageId = models.CharField(max_length=255, blank=True, null=True, editable=False)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.imageId:
+            self.imageId = str(uuid.uuid4())
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.creator.username}'s post"

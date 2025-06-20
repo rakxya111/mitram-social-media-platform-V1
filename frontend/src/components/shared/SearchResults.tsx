@@ -1,25 +1,22 @@
-// import type { Models } from "appwrite";
-// import { Loader } from "lucide-react";
-// import GridPostList from "./GridPostList";
+import { Loader } from "lucide-react";
+import GridPostList from "./GridPostList";
+import type { Post } from "@/types";
 
-// type SearchResultsProps = {
-//   isSearchFetching:  boolean;
-//   searchedPosts : Models.Document[];
-// }
+type SearchResultsProps = {
+  isSearchFetching: boolean;
+  searchedPosts: Post[];  // this is a plain array, not an object
+};
 
-// const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultsProps) => {
+const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultsProps) => {
+  if (isSearchFetching) return <Loader className="animate-spin" />;
 
-//   if(isSearchFetching) return <Loader />
+  if (searchedPosts.length > 0) {
+    return <GridPostList posts={searchedPosts} />;
+  }
 
-//   if(searchedPosts && searchedPosts.documents.length > 0) {
-//     return (
-//       <GridPostList posts={searchedPosts.documents} />
-//     )
-//   }
+  return (
+    <p className="text-light-4 mt-10 text-center w-full">No results found.</p>
+  );
+};
 
-//   return (
-//     <p className="text-light-4 mt-10 text-center w-full">No results Found</p>
-//   )
-// }
-
-// export default SearchResults
+export default SearchResults;

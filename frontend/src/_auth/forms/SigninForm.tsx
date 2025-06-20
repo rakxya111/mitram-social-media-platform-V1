@@ -35,7 +35,7 @@ const SigninForm = () => {
   const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
     setIsLoading(true)
     try {
-      const res = await axiosInstance.post("login/", values);
+      const res = await axiosInstance.post("auth/login/", values);
       
       // Extract tokens from the nested tokens object
       const { tokens } = res.data;

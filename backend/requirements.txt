@@ -9,3 +9,4 @@ sqlparse
 psycopg2-binary
 python-dotenv
 pillow-11.2.1
+django-filter-25.1

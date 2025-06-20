@@ -1,84 +1,89 @@
-// // import type { Models } from "appwrite";
-// import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { multiFormatDateString } from "@/lib/utils";
+import PostStats from "@/components/shared/PostStats";
+import type { Post } from "@/types";
+import { useUserContext } from "@/context/AuthContext";
+import { useState } from "react";
 
-// // import { PostStats } from "@/components/shared";
-// import { multiFormatDateString } from "@/lib/utils";
-// // import { useUserContext } from "@/context/AuthContext";
+interface PostCardProps {
+  post: Post;
+}
 
-// type PostCardProps = {
-//   // post: Models.Document;
-// };
+const PostCard = ({ post }: PostCardProps) => {
+  const { user } = useUserContext();
 
-// const PostCard = ({ post }: PostCardProps) => {
-//   // const { user } = useUserContext();
+  const currentUserId = user?.id || Number(localStorage.getItem("userId") || 0);
+  const userIdString = user?.id?.toString() || localStorage.getItem("userId") || "0";
 
-//   if (!post.creator) return;
+  // Manage local post state to reflect updates from PostStats
+  const [postState, setPostState] = useState(post);
 
-//   return (
-//     <div className="post-card">
-//       <div className="flex-between">
-//         <div className="flex items-center gap-3">
-//           <Link to={`/profile/${post.creator.$id}`}>
-//             <img
-//               src={
-//                 post.creator?.imageUrl ||
-//                 "/assets/icons/profile-placeholder.svg"
-//               }
-//               alt="creator"
-//               className="w-12 lg:h-12 rounded-full"
-//             />
-//           </Link>
+  const tags: string[] =
+    typeof postState.tags === "string"
+      ? postState.tags.split(",").map((tag) => tag.trim())
+      : Array.isArray(postState.tags)
+      ? postState.tags
+      : [];
 
-//           <div className="flex flex-col">
-//             <p className="base-medium lg:body-bold text-light-1">
-//               {post.creator.name}
-//             </p>
-//             <div className="flex-center gap-2 text-light-3">
-//               <p className="subtle-semibold lg:small-regular ">
-//                 {multiFormatDateString(post.$createdAt)}
-//               </p>
-//               •
-//               <p className="subtle-semibold lg:small-regular">
-//                 {post.location}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
+  return (
+    <div className="post-card">
+      {/* Header */}
+      <div className="flex-between">
+        <div className="flex items-center gap-3">
+          <Link to={`/profile/${postState.creator.id}`}>
+            <img
+              src={postState.creator.image || "/assets/icons/profile-placeholder.svg"}
+              alt="creator"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          </Link>
+          <div className="flex flex-col">
+            <p className="base-medium text-light-1">{postState.creator.name}</p>
+            <div className="text-light-3 text-sm">
+              <span>{multiFormatDateString(postState.created_at)}</span>
+              {postState.location && <span> • {postState.location}</span>}
+            </div>
+          </div>
+        </div>
 
-//         <Link
-//           to={`/update-post/${post.$id}`}
-//           className={`${user.id !== post.creator.$id && "hidden"}`}>
-//           <img
-//             src={"/assets/icons/edit.svg"}
-//             alt="edit"
-//             width={20}
-//             height={20}
-//           />
-//         </Link>
-//       </div>
+        {currentUserId === postState.creator.id && (
+          <Link to={`/update-post/${postState.id}`}>
+            <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
+          </Link>
+        )}
+      </div>
 
-//       <Link to={`/posts/${post.$id}`}>
-//         <div className="small-medium lg:base-medium py-5">
-//           <p>{post.caption}</p>
-//             <ul className="flex gap-1 mt-2">
-//             {(Array.isArray(post.tags) ? post.tags : []).map((tag: string, index: number) => (
-//                 <li key={`${tag}${index}`} className="text-light-3 small-regular">
-//                 #{tag}
-//                 </li>
-//             ))}
-//             </ul>
-//         </div>
+      {/* Caption and Image */}
+      <Link to={`/posts/${postState.id}`}>
+        <div className="text-light-1 text-sm my-4">
+          <p>{postState.caption}</p>
+          <ul className="flex gap-2 mt-2 flex-wrap">
+            {tags.map((tag, index) => (
+              <li key={index} className="text-light-3 text-xs">
+                #{tag}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-//         <img
-//           src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
-//           alt="post image"
-//           className="post-card_img"
-//         />
-//       </Link>
+        <img
+          src={postState.image || "/assets/icons/profile-placeholder.svg"}
+          alt="post"
+          className="post-card_img w-full h-auto rounded-lg"
+        />
+      </Link>
 
-//       <PostStats post={post} userId={user.id} />
-//     </div>
-//   );
-// };
+      {/* Stats */}
+<PostStats
+  postId={postState.id}
+  userId={userIdString}
+  isInitiallyLiked={postState.is_liked}
+  initialLikesCount={postState.likes_count}
+  isInitiallySaved={postState.is_saved}
+/>
 
-// export default PostCard;
+    </div>
+  );
+};
+
+export default PostCard;

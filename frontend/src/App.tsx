@@ -7,6 +7,12 @@ import RootLayout from './_root/RootLayout';
 import './globals.css'; 
 import { Toaster } from "@/components/ui/toaster"
 import Home from './_root/pages/Home'; 
+import CreatePost from './_root/pages/CreatePost';
+import EditPost from './_root/pages/EditPost';
+import PostDetails from './_root/pages/PostDetails';
+import Saved from './_root/pages/Saved';
+import Explore from './_root/pages/Explore';
+
 
 const App = () => {
   return (
@@ -26,14 +32,15 @@ const App = () => {
     <Route element={<RootLayout/>}>
     
     <Route index element={<Home/>} />
-    {/* <Route path='/explore' element={<Explore />} />
+    
+
+    <Route path='/explore' element={<Explore />} />
     <Route path='/saved' element={<Saved />} />
-    <Route path='/all-users' element={<AllUsers />} />
+    {/* <Route path='/all-users' element={<AllUsers />} /> */}
     <Route path='/create-post' element={<CreatePost />} />
     <Route path='/update-post/:id' element={<EditPost/>} />
     <Route path='/posts/:id' element={<PostDetails />} />
-    <Route path='/profile/:id/*' element={<Profile />} />
-    <Route path='/update-profile/:id' element={<UpdateProfile />} /> */}
+    {/* <Route path='/update-profile/:id' element={<UpdateProfile />} /> */}
 
     </Route>
 

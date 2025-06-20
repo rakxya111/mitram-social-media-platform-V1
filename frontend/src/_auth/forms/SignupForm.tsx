@@ -35,7 +35,7 @@ const SignupForm = () => {
   const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
     setIsLoading(true);
    try{
-    const res = await axiosInstance.post("register/",values);
+    const res = await axiosInstance.post("auth/register/",values);
     console.log("Registered:", res.data);
     toast({title : "Account created successfully! Please log in."});
     navigate("/sign-in");

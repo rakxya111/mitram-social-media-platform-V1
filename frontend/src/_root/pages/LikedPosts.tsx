@@ -1,29 +1,47 @@
-// import GridPostList from "@/components/shared/GridPostList";
+import GridPostList from "@/components/shared/GridPostList";
+import { useUserContext } from "@/context/AuthContext";
+import { fetchLikedPosts } from "@/lib/axios/api";
 // import { useGetCurrentUser } from "@/lib/react-query/queriesAndMutation"
-// import { Loader } from "lucide-react";
+import { use, useEffect, useState } from "react";
 
 
-// const LikedPosts = () => {
+const LikedPosts = () => {
 
-//   const { data: currentUser } = useGetCurrentUser();
+const { user } = useUserContext();
+const [likedPosts, setLikedPosts] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
-//   if(!currentUser){
-//     return(
-//       <div className="flex-center w-full h-full">
-//         <Loader />
-//       </div>
-//     )}
+  useEffect(() => {
+    if (!user?.id) return;
 
-//   return (
-//     <>
-//     {currentUser.liked.length === 0 && (
-//       <p className="text-light-4">No liked posts</p>
-//     )}
+    const getLikedPosts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchLikedPosts();
+        const LikedObjects = response.results || [];
+        const posts =  LikedObjects.map((like: { post: any }) => like.post);
+        setLikedPosts(posts);
+      } catch (error) {
+        console.error("Failed to fetch liked posts", error);
+        setLikedPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getLikedPosts();
+  }, [user?.id]);
+
+  return (
+    <>
+    {likedPosts.length === 0 && (
+      <p className="text-light-4">No liked posts</p>
+    )}
       
-//       <GridPostList posts={currentUser.liked} showStats={false} />
+      <GridPostList posts={likedPosts} showStats={false} />
 
-//     </>
-//   )
-// }
+    </>
+  )
+}
 
-// export default LikedPosts
+export default LikedPosts

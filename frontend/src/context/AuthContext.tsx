@@ -9,7 +9,7 @@ export const INITIAL_USER: IUser = {
   name: "",
   username: "",
   email: "",
-  imageUrl: "",
+  image: "",
   bio: "",
 };
 
@@ -44,10 +44,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = (access: string, refresh: string) => {
+  const login = async (access: string, refresh: string) => {
     localStorage.setItem("access", access);
     localStorage.setItem("refresh", refresh);
     setIsAuthenticated(true);
+    await checkAuthUser(); // fetch and set user data
   };
 
   const logout = () => {
@@ -62,29 +63,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access");
-      if (!token) throw new Error("No token");
+
+      if (!token) {
+        console.warn("No access token found.");
+        return false;
+      }
 
       // Verify token
-      await axiosInstance.post("token/verify/", { token });
+      await axiosInstance.post("auth/token/verify/", { token });
 
-      // Optionally fetch user profile here (assuming you have an endpoint)
-      const res = await axiosInstance.get("profile/");
+      // Get profile (adjust key names if needed based on your backend)
+      const res = await axiosInstance.get("auth/profile/");
       const userData = res.data;
+      console.log("userData:", userData);
 
-      setUser({
-        id: userData.id,
-        name: userData.name,
-        username: userData.username,
-        email: userData.email,
-        imageUrl: userData.imageUrl || "",
-        bio: userData.bio || "",
-      });
+    setUser({
+      id: userData.id,
+      name: userData.name,
+      username: userData.username,
+      email: userData.email,
+      image: userData.image ? `http://localhost:8000${userData.image}` : "",
+      bio: userData.bio || "",
+    });
+
+    // Save userId to localStorage for global usage
+    localStorage.setItem("userId", String(userData.id));
+
+
 
       setIsAuthenticated(true);
       return true;
     } catch (err) {
       console.error("Auth check failed:", err);
-      logout(); // force logout if verification fails
+      setIsAuthenticated(false);
+      setUser(INITIAL_USER);
       return false;
     } finally {
       setIsLoading(false);

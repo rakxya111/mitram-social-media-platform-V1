@@ -1,109 +1,162 @@
-// import PostStats from "@/components/shared/PostStats";
-// import { Button } from "@/components/ui/button";
-// import { useUserContext } from "@/context/AuthContext";
-// import { useGetPostById } from "@/lib/react-query/queriesAndMutation";
-// import { multiFormatDateString } from "@/lib/utils";
-// import { Loader } from "lucide-react";
-// import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Loader } from "lucide-react";
+import { posts } from "@/lib/Django/queries";
+import { useUserContext } from "@/context/AuthContext";
+import PostStats from "@/components/shared/PostStats";
 
-// const PostDetails = () => {
-//   const { id } = useParams();
-//   const { data: post, isPending } = useGetPostById(id || "");
-//   const { user } = useUserContext();
+import type { Post } from "@/types";
+import { multiFormatDateString } from "@/lib/utils";
 
-//   const handleDeletePost = () => {};
+const PostDetails = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useUserContext();
 
-//   return (
-//     <div className="post_details-container">
-//       {isPending ? (
-//         <Loader />
-//       ) : (
-//         <div className="post_details-card">
-//           <img src={post?.imageUrl} alt="post" className="post_details-img" />
-//           <div className="post_details-info">
-//             <div className="flex-between w-full">
-//               <Link
-//                 to={`/profile/${post?.creator.$id}`}
-//                 className="flex items-center gap-3"
-//               >
-//                 <img
-//                   src={
-//                     post?.creator?.imageUrl ||
-//                     "/assets/icons/profile-placeholder.svg"
-//                   }
-//                   alt="creator"
-//                   className="rounded-full w-8 h-8 lg:w-12 lg:h-12 "
-//                 />
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
-//                 <div className="flex flex-col">
-//                   <p className="base-medium lg:body-bold text-light-1">
-//                     {post?.creator.name}
-//                   </p>
-//                   <div className="flex-center gap-2 text-light-3">
-//                     <p className="subtle-semibold lg:small-regular ">
-//                       {multiFormatDateString(post?.$createdAt)}
-//                     </p>
+  useEffect(() => {
+    if (!id) return;
 
-//                     <p className="subtle-semibold lg:small-regular">
-//                       {post?.location}
-//                     </p>
-//                   </div>
-//                 </div>
-//               </Link>
+    const fetchPost = async () => {
+      try {
+        const data = await posts.getPost(id);
+        setPost(data);
+      } catch (error) {
+        console.error("Failed to load post:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-//               <div className="flex-center">
-//                 <Link
-//                   to={`/update-post/${post?.$id}`}
-//                   className={`${user.id !== post?.creator.$id && "hidden"}`}
-//                 >
-//                   <img
-//                     src={"/assets/icons/edit.svg"}
-//                     alt="edit"
-//                     width={24}
-//                     height={24}
-//                   />
-//                 </Link>
+    fetchPost();
+  }, [id]);
 
-//                 <Button
-//                   onClick={handleDeletePost}
-//                   variant="ghost"
-//                   className={`ghost_details-delete_btn ${
-//                     user.id !== post?.creator.$id && "hidden"
-//                   }`}
-//                 >
-//                   <img
-//                     src="/assets/icons/delete.svg"
-//                     alt="delete"
-//                     width={24}
-//                     height={24}
-//                   />
-//                 </Button>
-//               </div>
-//             </div>
+  const handleDeletePost = async () => {
+    if (!post) return;
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
 
-//             <hr className="border w-full border-dark-4/80" />
-//             <div className="flex flex-col flex-1 w-full small-medium lg:base-regular">
-//               <p>{post?.caption}</p>
-//               <ul className="flex gap-1 mt-2">
-//                 {(post?.tags ? post?.tags.split(",") : []).map(
-//                   (tag: string, index: number) => (
-//                     <li key={index} className="text-light-3 small-regular">
-//                       #{tag.trim()}
-//                     </li>
-//                   )
-//                 )}
-//               </ul>
-//             </div>
+    setDeleting(true);
+    try {
+      await posts.deletePost(post.id.toString());
+      navigate("/"); // redirect after deletion
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      setDeleting(false);
+    }
+  };
 
-//           <div className="w-full">
-//              <PostStats post={post} userId={user.id} /> 
-//           </div>
+  if (loading) {
+    return <Loader className="animate-spin w-6 h-6 mx-auto mt-10" />;
+  }
 
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
+  if (!post) {
+    return <p className="text-center mt-10">Post not found.</p>;
+  }
 
-// export default PostDetails;
+  return (
+    <div className="post_details-container">
+      <div className="post_details-card max-w-5xl mx-auto">
+        <img src={post.image} alt="post" className="post_details-img" />
+
+        <div className="post_details-info">
+          <div className="flex justify-between items-center mb-4">
+            <Link
+              to={`/profile/${post.creator.id}`}
+              className="flex items-center gap-3"
+            >
+              <img
+                src={
+                  post.creator.image ||
+                  "/assets/icons/profile-placeholder.svg"
+                }
+                alt="creator"
+                className="rounded-full w-10 h-10 lg:w-12 lg:h-12"
+              />
+              <div>
+                <p className="font-semibold text-lg">{post.creator.name}</p>
+                <p className="text-sm text-gray-500">
+                  {multiFormatDateString(post.created_at)}
+                </p>
+                {post.location && (
+                  <p className="text-sm text-gray-400">{post.location}</p>
+                )}
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-4 ml-10">
+              {user?.id === post.creator.id && (
+                <>
+                  <Link
+                    to={`/update-post/${post.id}/`}
+                    className="text-blue-500 hover:underline"
+                    title="Edit Post"
+                  >
+                    <img
+                      src="/assets/icons/edit.svg"
+                      alt="edit"
+                      width={24}
+                      height={24}
+                    />
+                  </Link>
+
+                  <button
+                    onClick={handleDeletePost}
+                    disabled={deleting}
+                    className="text-red-600 hover:text-red-800"
+                    title="Delete Post"
+                  >
+                    <img
+                      src="/assets/icons/delete.svg"
+                      alt="delete"
+                      width={24}
+                      height={24}
+                    />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <hr className="border-gray-300 mb-4" />
+
+          <p className="mb-2 text-base">{post.caption}</p>
+
+          {post.tags && post.tags.length > 0 && (
+            <ul className="flex flex-wrap gap-2 mb-4">
+              {post.tags
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .map((tag, i) => (
+                  <li
+                    key={i}
+                    className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded"
+                  >
+                    #{tag}
+                  </li>
+                ))}
+            </ul>
+          )}
+
+<div className="flex justify-between items-center mt-4">
+<PostStats
+  postId={post.id}
+  userId={user?.id.toString() || ""}
+  initialLikesCount={post.likes_count || 0}
+  isInitiallyLiked={post.is_liked || false}
+  isInitiallySaved={post.is_saved || false} // NEW
+/>
+
+</div>
+
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PostDetails;

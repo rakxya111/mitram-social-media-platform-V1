@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .serializers import UserRegistrationSerializer, UserSerializer, UserProfileUpdateSerializer
-
+from .models import CustomUser
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -54,6 +54,17 @@ def login_user(request):
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
     serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_by_id(request, id):
+    try:
+        user = CustomUser.objects.get(pk=id)
+    except CustomUser.DoesNotExist:
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserSerializer(user)
     return Response(serializer.data)
 
 
