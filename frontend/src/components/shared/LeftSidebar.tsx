@@ -7,8 +7,9 @@ import type { INavLink } from "@/types";
 const LeftSidebar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
+  
   const { user, logout } = useUserContext(); // Assuming your AuthContext provides user & logout
+  let userId = localStorage.getItem("userId") || user.id;
 
   // Logout handler
   const handleLogout = () => {
@@ -28,7 +29,7 @@ const LeftSidebar = () => {
           />
         </Link>
 
-        <Link to="auth/profile" className="flex gap-3 items-center">
+        <Link to={`/profile/${userId}`} className="flex gap-3 items-center">
           <img
             src={user?.image || "/assets/icons/profile-picture.svg"}
             alt="profile"

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
+
 User = get_user_model()
 
 
@@ -34,9 +35,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
     
 class UserSerializer(serializers.ModelSerializer):
+    posts_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'name', 'email', 'username', 'bio', 'image', 'date_joined')
+        fields = ['id', 'name', 'username', 'email', 'image', 'bio', 'posts_count']
+
+    def get_posts_count(self, obj):
+        return obj.posts.count()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:

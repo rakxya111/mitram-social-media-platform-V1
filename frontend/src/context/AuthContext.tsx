@@ -11,6 +11,9 @@ export const INITIAL_USER: IUser = {
   email: "",
   image: "",
   bio: "",
+  posts: [],
+  followers: [],
+  following: [],
 };
 
 const INITIAL_STATE = {
@@ -72,8 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Verify token
       await axiosInstance.post("auth/token/verify/", { token });
 
+      // Get userId from localStorage or from the user state if available
+      let userId = localStorage.getItem("userId") || user.id;
+      if (!userId) {
+        throw new Error("User ID not found.");
+      }
+
       // Get profile (adjust key names if needed based on your backend)
-      const res = await axiosInstance.get("auth/profile/");
+      const res = await axiosInstance.get(`auth/users/${userId}/`);
       const userData = res.data;
       console.log("userData:", userData);
 
@@ -84,6 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: userData.email,
       image: userData.image ? `http://localhost:8000${userData.image}` : "",
       bio: userData.bio || "",
+      posts: userData.posts || [],
+      followers: userData.followers || [],
+      following: userData.following || [],
     });
 
     // Save userId to localStorage for global usage

@@ -23,7 +23,7 @@ export const logoutUser = () => {
   return axiosInstance.post('auth/logout/');
 };
 
-export const getUserProfile = () => axiosInstance.get('auth/profile/');
+export const getUserProfile = () => axiosInstance.get('auth/user/');
 
 export const updateUserProfile = (data: { bio?: string; image?: File }) => {
   const formData = new FormData();

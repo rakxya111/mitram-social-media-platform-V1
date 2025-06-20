@@ -8,8 +8,9 @@ import type {
   Post,
   Comment
 } from '@/types';
+import { useQuery } from '@tanstack/react-query';
 import axios from "axios";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/',
@@ -100,7 +101,7 @@ const ENDPOINTS = {
     LOGIN: 'auth/login/',
     REGISTER: 'auth/register/',
     LOGOUT: 'auth/logout/',
-    USER_PROFILE: 'auth/profile/',
+    USER_PROFILE: 'auth/user/',
     REFRESH: 'auth/token/refresh/',
   },
   POSTS: {
@@ -120,7 +121,7 @@ const ENDPOINTS = {
     DELETE: (postId: string, commentId: string) => `posts/${postId}/comments/${commentId}/delete/`
   },
   USERS: {
-    PROFILE: (id: string) => `user/${id}/profile/`,
+    PROFILE: (id: string) => `auth/users/${id}/`,   
     FOLLOW: (id: string) => `users/${id}/follow/`,
     UNFOLLOW: (id: string) => `users/${id}/unfollow/`,
     FOLLOWERS: (id: string) => `users/${id}/followers/`,

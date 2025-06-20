@@ -38,6 +38,10 @@ export type IUser = {
   email: string;
   image?: string; 
   bio?: string;
+  posts_count?: number;
+  followers?: IUser[];
+  following?: IUser[];
+  posts: any[];
 };
 
 export type INewUser = {

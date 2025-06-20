@@ -28,7 +28,8 @@ class Save(models.Model):
         return f"{self.user.username} saved post {self.post.id}"
 
 class Post(models.Model):
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
+
     caption = models.TextField(blank=True)
     tags = models.CharField(max_length=255, blank=True)
     image = models.ImageField(upload_to='post_images/', blank=False, null=False)

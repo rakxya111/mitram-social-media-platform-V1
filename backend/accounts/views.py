@@ -61,11 +61,12 @@ def get_user_profile(request):
 def get_user_by_id(request, id):
     try:
         user = CustomUser.objects.get(pk=id)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
     except CustomUser.DoesNotExist:
         return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+
 
 
 @api_view(['PUT', 'PATCH'])

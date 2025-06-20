@@ -12,6 +12,7 @@ import EditPost from './_root/pages/EditPost';
 import PostDetails from './_root/pages/PostDetails';
 import Saved from './_root/pages/Saved';
 import Explore from './_root/pages/Explore';
+import Profile from './_root/pages/Profile';
 
 
 const App = () => {
@@ -40,6 +41,7 @@ const App = () => {
     <Route path='/create-post' element={<CreatePost />} />
     <Route path='/update-post/:id' element={<EditPost/>} />
     <Route path='/posts/:id' element={<PostDetails />} />
+    <Route path="/profile/:id/*" element={<Profile />} />
     {/* <Route path='/update-profile/:id' element={<UpdateProfile />} /> */}
 
     </Route>
