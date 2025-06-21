@@ -7,7 +7,7 @@ interface PostStatsProps {
   userId: string;
   initialLikesCount: number;
   isInitiallyLiked: boolean;
-  isInitiallySaved: boolean; // ✅ now used
+  isInitiallySaved: boolean;
 }
 
 const PostStats = ({
@@ -19,35 +19,44 @@ const PostStats = ({
 }: PostStatsProps) => {
   const [isLiked, setIsLiked] = useState(isInitiallyLiked);
   const [likesCount, setLikesCount] = useState(initialLikesCount);
-  const [isSaved, setIsSaved] = useState(isInitiallySaved); // ✅ fixed
-  const [loading, setLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(isInitiallySaved);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLoading(true);
+    setLikeLoading(true);
+
     try {
       const res = await toggleLikePost(postId);
-      const liked = res.data.is_liked;
-      const count = res.data.likes_count;
-      setIsLiked(liked);
-      setLikesCount(count);
+      console.log("LIKE API RESPONSE:", res.data); // ✅ Debug print
+
+      const { is_liked, likes_count } = res.data || {};
+
+      if (typeof is_liked !== "boolean" || typeof likes_count !== "number") {
+        throw new Error("Invalid response from like API");
+      }
+
+      setIsLiked(is_liked);
+      setLikesCount(likes_count);
     } catch (err) {
-      console.error("Error liking post", err);
+      console.error("Error liking post:", err);
     } finally {
-      setLoading(false);
+      setLikeLoading(false);
     }
   };
 
   const handleSaveClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLoading(true);
+    setSaveLoading(true);
+
     try {
       await toggleSavePost(postId);
       setIsSaved((prev) => !prev);
     } catch (err) {
-      console.error("Error saving post", err);
+      console.error("Error saving post:", err);
     } finally {
-      setLoading(false);
+      setSaveLoading(false);
     }
   };
 
@@ -62,10 +71,13 @@ const PostStats = ({
           onClick={handleLikeClick}
           className="cursor-pointer"
         />
-        <p className="small-medium lg:base-medium">{likesCount}</p>
+        <p className="small-medium lg:base-medium">
+          {likeLoading ? "..." : likesCount}
+        </p>
       </div>
+
       <div className="flex items-center gap-2 ml-5">
-        {loading ? (
+        {saveLoading ? (
           <Loader size={20} />
         ) : (
           <img
