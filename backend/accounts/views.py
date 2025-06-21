@@ -66,26 +66,28 @@ def get_user_by_id(request, id):
     except CustomUser.DoesNotExist:
         return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def list_users(request):
+    users = CustomUser.objects.all()
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
 
 
-
-@api_view(['PUT', 'PATCH'])
+@api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def update_user_profile(request):
-    user = request.user
-    # Fixed: Pass user instance and data to serializer, and set partial=True for PATCH
-    serializer = UserProfileUpdateSerializer(
-        user, 
-        data=request.data, 
-        partial=request.method == 'PATCH'
-    )
-    
+def update_user_profile(request, pk):
+    try:
+        user = CustomUser.objects.get(pk=pk)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.user != user:
+        return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = UserProfileUpdateSerializer(user, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        return Response({
-            'message': 'Profile updated successfully',
-            'user': serializer.data
-        }, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

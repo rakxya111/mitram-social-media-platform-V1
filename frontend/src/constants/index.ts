@@ -49,3 +49,5 @@ export const bottombarLinks = [
     label: "Create",
   },
 ];
+
+export const BACKEND_URL = "http://localhost:8000"; // change for prod

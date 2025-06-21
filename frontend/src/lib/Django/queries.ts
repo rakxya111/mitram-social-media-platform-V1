@@ -6,9 +6,10 @@ import type {
   RegisterData,
   IUser,
   Post,
-  Comment
+  Comment,
+  IUpdateUser
 } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from "axios";
 
 
@@ -181,6 +182,29 @@ export const authQueries = {
   }
 };
 
+export interface UpdateProfileData {
+  name: string;
+  bio: string;
+  image?: File; // optional
+}
+
+
+export const updateProfile = async (userId: string, data: UpdateProfileData) => {
+  const formData = new FormData();
+  formData.append('name', data.name);
+  formData.append('bio', data.bio);
+  if (data.image) {
+    formData.append('image', data.image);
+  }
+
+  const response = await axiosInstance.patch(`/auth/users/update/${userId}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+};
 // ─── POSTS ───────────────────────────────
 export const postQueries = {
   getAllPosts: async (page = 1, limit = 10): Promise<{ results: Post[]; count: number; next: string | null; previous: string | null }> => {
@@ -222,6 +246,22 @@ export const postQueries = {
       likes_count: res.data.likes_count,
     };
   },
+};
+
+export const getUsers = async (): Promise<IUser[]> => {
+  const response = await axiosInstance.get("/auth/users/"); // URL should match your Django backend
+  return response.data; // Must be an array of users
+};
+
+// ✅ GET all users
+export const useGetUsers = () => {
+  return useQuery({
+    queryKey: ['getUsers'],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/auth/users/list/');
+      return res.data;
+    },
+  });
 };
 
 // ─── COMMENTS ───────────────────────────────
@@ -315,6 +355,12 @@ export const useSearchPosts = (search: string) => {
       return res.data.results; // return only the array
     },
     enabled: !!search,
+  });
+};
+
+export const useUpdateProfile = (userId: string) => {
+  return useMutation({
+    mutationFn: (data: UpdateProfileData) => updateProfile(userId, data),
   });
 };
 

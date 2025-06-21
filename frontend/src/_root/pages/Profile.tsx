@@ -8,14 +8,19 @@ import GridPostList from "@/components/shared/GridPostList";
 import { Button } from "@/components/ui/button";
 import LikedPosts from "./LikedPosts";
 import type { IUser, Post } from "@/types";
-import { fetchMyPosts, fetchPosts } from "@/lib/axios/api";
-
+import { fetchUserPosts } from "@/lib/axios/api";  // changed function name to clarify
+import { BACKEND_URL } from "@/constants";
 const StatBlock = ({ value, label }: { value: string | number; label: string }) => (
   <div className="flex-center gap-2">
     <p className="small-semibold lg:body-bold text-primary-500">{value}</p>
     <p className="small-medium lg:base-medium text-light-2">{label}</p>
   </div>
 );
+
+const getFullImageUrl = (imagePath?: string) => {
+  if (!imagePath) return "/assets/icons/profile-placeholder.svg";
+  return `${BACKEND_URL}${imagePath}`;
+};
 
 const Profile = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,36 +29,24 @@ const Profile = () => {
   const { pathname } = useLocation();
 
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
-
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-  
-    useEffect(() => {
-      const loadPosts = async () => {
-        try {
-          const res = await fetchMyPosts();
-          setPosts(res.data.results || res.data); // depending on pagination
-        } catch (err) {
-          setError("Failed to load posts.");
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      loadPosts();
-    }, []);
-  
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!id) return;
 
     const fetchUser = async () => {
       try {
+        setLoading(true);
         const data = await userQueries.getUser(id);
         setCurrentUser(data);
+
+        const postsRes = await fetchUserPosts(Number(id));
+        setPosts(postsRes.data.results || postsRes.data);
       } catch (error) {
-        console.error("Failed to fetch user profile:", error);
+        console.error("Failed to fetch user profile or posts:", error);
+        setError("Failed to load profile.");
       } finally {
         setLoading(false);
       }
@@ -75,7 +68,7 @@ const Profile = () => {
       <div className="profile-inner_container">
         <div className="flex xl:flex-row flex-col max-xl:items-center flex-1 gap-7">
           <img
-            src={user?.image || "/assets/icons/profile-placeholder.svg"}
+            src={getFullImageUrl(currentUser.image)}
             alt="profile"
             className="w-28 h-28 lg:h-36 lg:w-36 rounded-full object-cover"
           />
@@ -91,7 +84,7 @@ const Profile = () => {
             </div>
 
             <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
-              <StatBlock value={user?.posts_count ?? 0} label="Posts" />
+              <StatBlock value={currentUser.posts_count ?? 0} label="Posts" />
               <StatBlock value={(currentUser.followers?.length ?? 0) || 20} label="Followers" />
               <StatBlock value={(currentUser.following?.length ?? 0) || 20} label="Following" />
             </div>
@@ -133,7 +126,7 @@ const Profile = () => {
           <Link
             to={`/profile/${id}/liked-posts`}
             className={`profile-tab rounded-r-lg ${
-              pathname === `/profile/${id}/liked` && "!bg-dark-3"
+              pathname === `/profile/${id}/liked-posts` && "!bg-dark-3"
             }`}
           >
             <img src="/assets/icons/like.svg" alt="like" width={20} height={20} />
@@ -143,13 +136,9 @@ const Profile = () => {
       )}
 
       <Routes>
-        <Route
-          index
-          element={<GridPostList posts={posts} showUser={false} />
-}
-        />
+        <Route index element={<GridPostList posts={posts} showUser={false} />} />
         {user.id === currentUser.id && (
-          <Route path="/liked-posts" element={<LikedPosts />} />
+          <Route path="liked-posts" element={<LikedPosts />} />
         )}
       </Routes>
 

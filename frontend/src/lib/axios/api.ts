@@ -159,3 +159,7 @@ export const toggleSavePost = (postId: number) =>
 export const getPostById = (postId: number) =>
   axiosInstance.get(`posts/${postId}/`);
 
+export const fetchPostsByUserId = (userId: string | number) => {
+  return axiosInstance.get(`/posts/?user=${userId}`);
+};
+
