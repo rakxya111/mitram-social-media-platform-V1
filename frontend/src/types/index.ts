@@ -32,7 +32,7 @@ export type RegisterData = {
 // ─── USER ───────────────────────────────────────────────────────
 
 export type IUser = {
-  id: string | number;
+  id: number;
   name: string;
   username: string;
   email: string;

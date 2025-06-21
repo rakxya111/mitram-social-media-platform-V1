@@ -5,7 +5,7 @@ import type { IUser } from "@/types";
 import axiosInstance from "@/lib/axios/axiosInstance";
 
 export const INITIAL_USER: IUser = {
-  id: "",
+  id: 0,
   name: "",
   username: "",
   email: "",
@@ -16,26 +16,26 @@ export const INITIAL_USER: IUser = {
   following: [],
 };
 
+type IContextType = {
+  user: IUser;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  setUser: React.Dispatch<React.SetStateAction<IUser>>;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  checkAuthUser: () => Promise<boolean>;
+  login: (access: string, refresh: string) => Promise<void>;
+  logout: () => void;
+};
+
 const INITIAL_STATE = {
   user: INITIAL_USER,
   isLoading: false,
   isAuthenticated: false,
   setUser: () => {},
   setIsAuthenticated: () => {},
-  checkAuthUser: async () => false as boolean,
-  login: (_a: string, _r: string) => {},
+  checkAuthUser: async () => false,
+  login: async () => {},
   logout: () => {},
-};
-
-type IContextType = {
-  user: IUser;
-  isLoading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<IUser>>;
-  isAuthenticated: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  checkAuthUser: () => Promise<boolean>;
-  login: (access: string, refresh: string) => void;
-  logout: () => void;
 };
 
 const AuthContext = createContext<IContextType>(INITIAL_STATE);
@@ -47,66 +47,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = async (access: string, refresh: string) => {
-    localStorage.setItem("access", access);
-    localStorage.setItem("refresh", refresh);
-    setIsAuthenticated(true);
-    await checkAuthUser(); // fetch and set user data
-  };
-
-  const logout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    setIsAuthenticated(false);
-    setUser(INITIAL_USER);
-    navigate("/sign-in");
-  };
-
-  const checkAuthUser = async () => {
+  // Check if access token is valid and fetch user profile
+  const checkAuthUser = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access");
-
       if (!token) {
-        console.warn("No access token found.");
+        setIsAuthenticated(false);
+        setUser(INITIAL_USER);
         return false;
       }
 
-      // Verify token
+      // Verify token validity
       await axiosInstance.post("auth/token/verify/", { token });
 
-      // Get userId from localStorage or from the user state if available
-      let userId = localStorage.getItem("userId") || user.id;
-      if (!userId) {
-        throw new Error("User ID not found.");
-      }
-
-      // Get profile (adjust key names if needed based on your backend)
-      const res = await axiosInstance.get(`auth/users/${userId}/`);
+      // Fetch user profile
+      const res = await axiosInstance.get("auth/profile/");
       const userData = res.data;
-      console.log("userData:", userData);
 
-    setUser({
-      id: userData.id,
-      name: userData.name,
-      username: userData.username,
-      email: userData.email,
-      image: userData.image ? `http://localhost:8000${userData.image}` : "",
-      bio: userData.bio || "",
-      posts: userData.posts || [],
-      followers: userData.followers || [],
-      following: userData.following || [],
-    });
-
-    // Save userId to localStorage for global usage
-    localStorage.setItem("userId", String(userData.id));
-
-
+      setUser({
+        id: Number(userData.id),
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        image: userData.image ? `http://localhost:8000${userData.image}` : "",
+        bio: userData.bio || "",
+        posts: userData.posts || [],
+        followers: userData.followers || [],
+        following: userData.following || [],
+      });
 
       setIsAuthenticated(true);
       return true;
-    } catch (err) {
-      console.error("Auth check failed:", err);
+    } catch (error) {
+      console.error("Auth check failed:", error);
       setIsAuthenticated(false);
       setUser(INITIAL_USER);
       return false;
@@ -115,15 +89,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Login: store tokens, then validate user & set state
+  const login = async (access: string, refresh: string): Promise<void> => {
+    localStorage.setItem("access", access);
+    localStorage.setItem("refresh", refresh);
+
+    const success = await checkAuthUser();
+    if (success) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  };
+
+  // Logout: clear tokens and user info, redirect to sign-in page
+  const logout = (): void => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    setIsAuthenticated(false);
+    setUser(INITIAL_USER);
+    navigate("/sign-in");
+  };
+
+  // On mount, check if user is authenticated
   useEffect(() => {
     checkAuthUser();
   }, []);
 
   const value = {
     user,
-    setUser,
     isLoading,
     isAuthenticated,
+    setUser,
     setIsAuthenticated,
     checkAuthUser,
     login,

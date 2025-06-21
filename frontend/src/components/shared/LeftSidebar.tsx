@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
-import { useUserContext } from "@/context/AuthContext"; // your auth context
+import { useUserContext } from "@/context/AuthContext";
 import { sidebarLinks } from "@/constants";
 import type { INavLink } from "@/types";
 
@@ -8,13 +8,11 @@ const LeftSidebar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   
-  const { user, logout } = useUserContext(); // Assuming your AuthContext provides user & logout
-  let userId = localStorage.getItem("userId") || user.id;
+  const { user, logout, isAuthenticated } = useUserContext();
 
   // Logout handler
   const handleLogout = () => {
-    logout(); // clear tokens, context, etc.
-    navigate("/sign-in"); // redirect to sign-in page after logout
+    logout();
   };
 
   return (
@@ -29,7 +27,7 @@ const LeftSidebar = () => {
           />
         </Link>
 
-        <Link to={`/profile/${userId}`} className="flex gap-3 items-center">
+        <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
           <img
             src={user?.image || "/assets/icons/profile-picture.svg"}
             alt="profile"

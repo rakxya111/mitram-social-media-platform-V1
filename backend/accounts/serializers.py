@@ -47,7 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('bio','image')
+        fields = ('name','bio','image')
         extra_kwargs = {
             'bio': {'required':False},
             'image': {'required': False},

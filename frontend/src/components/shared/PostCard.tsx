@@ -10,12 +10,8 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post }: PostCardProps) => {
-  const { user } = useUserContext();
+  const { user, isAuthenticated } = useUserContext();
 
-  const currentUserId = user?.id || Number(localStorage.getItem("userId") || 0);
-  const userIdString = user?.id?.toString() || localStorage.getItem("userId") || "0";
-
-  // Manage local post state to reflect updates from PostStats
   const [postState, setPostState] = useState(post);
 
   const tags: string[] =
@@ -25,6 +21,15 @@ const PostCard = ({ post }: PostCardProps) => {
       ? postState.tags
       : [];
 
+  // Fix: compare user.id and post.creator.id as numbers directly
+  const isCurrentUserPost =
+    isAuthenticated && user?.id !== 0 && user?.id === postState.creator.id;
+
+console.log("user.id type & value:", typeof user?.id, user?.id);
+console.log("post.creator type & value:", typeof postState.creator, postState.creator);
+console.log("post.creator.id type & value:", typeof postState.creator.id, postState.creator.id);
+
+
   return (
     <div className="post-card">
       {/* Header */}
@@ -32,7 +37,9 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="flex items-center gap-3">
           <Link to={`/profile/${postState.creator.id}`}>
             <img
-              src={postState.creator.image || "/assets/icons/profile-placeholder.svg"}
+              src={
+                postState.creator.image || "/assets/icons/profile-placeholder.svg"
+              }
               alt="creator"
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -46,7 +53,8 @@ const PostCard = ({ post }: PostCardProps) => {
           </div>
         </div>
 
-        {currentUserId === postState.creator.id && (
+        {/* Show edit icon only if user owns post */}
+        {isCurrentUserPost && (
           <Link to={`/update-post/${postState.id}`}>
             <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
           </Link>
@@ -74,14 +82,13 @@ const PostCard = ({ post }: PostCardProps) => {
       </Link>
 
       {/* Stats */}
-<PostStats
-  postId={postState.id}
-  userId={userIdString}
-  isInitiallyLiked={postState.is_liked}
-  initialLikesCount={postState.likes_count}
-  isInitiallySaved={postState.is_saved}
-/>
-
+      <PostStats
+        postId={postState.id}
+        userId={user?.id ? String(user.id) : ""}
+        isInitiallyLiked={postState.is_liked}
+        initialLikesCount={postState.likes_count}
+        isInitiallySaved={postState.is_saved}
+      />
     </div>
   );
 };
