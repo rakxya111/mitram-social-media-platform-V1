@@ -10,3 +10,4 @@ psycopg2-binary
 python-dotenv
 pillow-11.2.1
 django-filter-25.1
+gunicorn-23.0.0
