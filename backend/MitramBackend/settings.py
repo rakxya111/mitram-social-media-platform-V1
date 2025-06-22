@@ -4,16 +4,19 @@ from datetime import timedelta
 import dj_database_url
 from dotenv import load_dotenv
 
-load_dotenv()  # Load .env locally (ignored on Render)
+load_dotenv()  # Load local .env file, ignored in deployed environments
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-default-secret")
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", 
+    "django-insecure-07lg$wpd*^_*k2&-ot=tv=7kxer%#bwtfcev)k!ou)i!bhq=0#"
+)
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"]  # Change this in production to your domain(s)
 
-# Apps
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,7 +37,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # serve static files in prod
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files in prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,14 +65,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'MitramBackend.wsgi.application'
 
-# Database (use DATABASE_URL from Render)
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
-}
+# Database configuration: switch between local and production
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("DB_NAME"),
+            'USER': os.getenv("DB_USER"),
+            'PASSWORD': os.getenv("DB_PASSWORD"),
+            'HOST': os.getenv("DB_HOST"),
+            'PORT': os.getenv("DB_PORT"),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+    }
+
+
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# REST Framework
+# REST Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -83,10 +102,10 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
 }
 
-# JWT
+# JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -122,12 +141,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Set to False if you want to restrict origins
 CORS_ALLOW_CREDENTIALS = True
