@@ -1,37 +1,25 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-
+from .models import CustomUser
 
 User = get_user_model()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
-        model = User
-        fields = ('name', 'email', 'username', 'password', 'password_confirm')
+        model = CustomUser
+        fields = ('email', 'username', 'name', 'password')
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError("Passwords don't match")
-        return attrs
-    
-    def validate_email(self,value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email already Exists")
-        return value
-    
-    def validate_username(self,value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Username already exists")
-        return value
-    
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
-        user = User.objects.create_user(**validated_data)
+        user = CustomUser.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            name=validated_data['name'],
+            password=validated_data['password']
+        )
         return user
     
 class UserSerializer(serializers.ModelSerializer):

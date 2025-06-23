@@ -25,10 +25,9 @@ def register_user(request):
         return Response({
             'user': UserSerializer(user).data,
             'tokens': tokens,
-            'message': 'User Registered successfully'
+            'message': 'User registered successfully'
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -39,8 +38,7 @@ def login_user(request):
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Pass request here for compatibility with custom backend
-    user = authenticate(request=request, username=email, password=password)
+    user = authenticate(username=email, password=password)
     if user:
         tokens = get_tokens_for_user(user)
         return Response({
@@ -49,7 +47,7 @@ def login_user(request):
             'message': 'Login successful'
         }, status=status.HTTP_200_OK)
     else:
-        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['GET'])
