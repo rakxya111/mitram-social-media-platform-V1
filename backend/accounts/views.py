@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -7,6 +8,63 @@ from django.contrib.auth import authenticate
 from .serializers import UserRegistrationSerializer, UserSerializer, UserProfileUpdateSerializer
 from .models import CustomUser
 
+import logging
+from django.db import transaction
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+
+logger = logging.getLogger(__name__)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    logger.info(f"Registration attempt with data: {request.data}")
+    
+    # Debug: Check if we can import and use the model
+    try:
+        from .models import CustomUser
+        logger.info(f"CustomUser model imported successfully")
+        
+        # Check if we can query the model
+        user_count = CustomUser.objects.count()
+        logger.info(f"Current user count: {user_count}")
+        
+    except Exception as e:
+        logger.error(f"Model import/query error: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'Database model error',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    serializer = UserRegistrationSerializer(data=request.data)
+    
+    try:
+        if serializer.is_valid():
+            logger.info("Serializer is valid, attempting to save...")
+            
+            with transaction.atomic():
+                user = serializer.save()
+                tokens = get_tokens_for_user(user)
+                
+                logger.info(f"User {user.email} registered successfully")
+                
+                return Response({
+                    'user': UserSerializer(user).data,
+                    'tokens': tokens,
+                    'message': 'User registered successfully'
+                }, status=status.HTTP_201_CREATED)
+        else:
+            logger.warning(f"Serializer validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'Registration failed',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def get_tokens_for_user(user):
@@ -15,27 +73,6 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def register_user(request):
-    serializer = UserRegistrationSerializer(data=request.data)
-    try:
-        if serializer.is_valid():
-            user = serializer.save()
-            tokens = get_tokens_for_user(user)
-            return Response({
-                'user': UserSerializer(user).data,
-                'tokens': tokens,
-                'message': 'User registered successfully'
-            }, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

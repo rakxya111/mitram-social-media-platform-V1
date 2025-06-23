@@ -66,9 +66,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'MitramBackend.wsgi.application'
 
 # Database configuration: switch between local and production
+
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if DEBUG:
+if DATABASE_URL:
+    # Production: Use DATABASE_URL (from Render)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -78,10 +89,6 @@ if DEBUG:
             'HOST': os.getenv("DB_HOST"),
             'PORT': os.getenv("DB_PORT"),
         }
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
 
 
@@ -156,3 +163,37 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Keep default fallback
 ]
 
+# Add this to your settings.py for better error visibility in production
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
