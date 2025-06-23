@@ -24,7 +24,7 @@ import { useUpdateProfile } from "@/lib/Django/queries";
 const UpdateProfile = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  // const { id } = useParams<{ id: string }>();
   const { user, setUser } = useUserContext();
 
   // Initialize React Hook Form with default values from user context

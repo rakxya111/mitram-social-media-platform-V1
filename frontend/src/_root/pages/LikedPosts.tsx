@@ -2,7 +2,7 @@ import GridPostList from "@/components/shared/GridPostList";
 import { useUserContext } from "@/context/AuthContext";
 import { fetchLikedPosts } from "@/lib/axios/api";
 // import { useGetCurrentUser } from "@/lib/react-query/queriesAndMutation"
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 
 const LikedPosts = () => {

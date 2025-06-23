@@ -12,7 +12,7 @@ interface PostStatsProps {
 
 const PostStats = ({
   postId,
-  userId,
+  // userId,
   isInitiallyLiked,
   initialLikesCount,
   isInitiallySaved,

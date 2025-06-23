@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Link, NavLink,  useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useUserContext } from "@/context/AuthContext";
 import { sidebarLinks } from "@/constants";
@@ -6,9 +6,8 @@ import type { INavLink } from "@/types";
 
 const LeftSidebar = () => {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   
-  const { user, logout, isAuthenticated } = useUserContext();
+  const { user, logout } = useUserContext();
 
   // Logout handler
   const handleLogout = () => {

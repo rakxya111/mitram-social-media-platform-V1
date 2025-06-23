@@ -16,7 +16,7 @@ import FileUploader from "../shared/FileUploader";
 import { PostValidation } from "@/lib/validation";
 
 import { useUserContext } from "@/context/AuthContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import axiosInstance from "@/lib/axios/axiosInstance";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +43,7 @@ type PostFormProps = {
 const PostForm = ({ post, action }: PostFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useUserContext();
+  useUserContext();
 
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
