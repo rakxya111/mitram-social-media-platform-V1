@@ -12,7 +12,7 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const { user, isAuthenticated } = useUserContext();
 
-  const [postState, setPostState] = useState(post);
+  const [postState, ] = useState(post);
 
   const tags: string[] =
     typeof postState.tags === "string"

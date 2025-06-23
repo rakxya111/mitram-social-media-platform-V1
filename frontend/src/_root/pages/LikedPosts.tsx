@@ -9,7 +9,7 @@ const LikedPosts = () => {
 
 const { user } = useUserContext();
 const [likedPosts, setLikedPosts] = useState<any[]>([]);
-const [loading, setLoading] = useState(true);
+const [, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.id) return;

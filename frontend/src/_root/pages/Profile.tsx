@@ -31,7 +31,7 @@ const Profile = () => {
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
 
   useEffect(() => {
     if (!id) return;

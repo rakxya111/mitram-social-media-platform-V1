@@ -7,7 +7,7 @@ import type {
   IUser,
   Post,
   Comment,
-  IUpdateUser
+
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from "axios";
