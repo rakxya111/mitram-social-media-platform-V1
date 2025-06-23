@@ -15,18 +15,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
-            email=validated_data['email'],
+            email=validated_data['email'].lower(),  # normalize email
             username=validated_data['username'],
             name=validated_data['name'],
             password=validated_data['password']
         )
         return user
-    
+
+
 class UserSerializer(serializers.ModelSerializer):
     posts_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['id', 'name', 'username', 'email', 'image', 'bio', 'posts_count']
 
     def get_posts_count(self, obj):

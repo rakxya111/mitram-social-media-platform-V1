@@ -5,12 +5,6 @@ const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
-const deletePost = async (id: string | number): Promise<void> => {
-  await axiosInstance.delete(`/posts/${id}/delete-func/`);
-};
-
-export { deletePost };
-
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -83,4 +77,10 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Delete post function
+const deletePost = async (id: string | number): Promise<void> => {
+  await axiosInstance.delete(`/posts/${id}/delete-func/`);
+};
+
+export { deletePost };
 export default axiosInstance;

@@ -8,12 +8,14 @@ from .serializers import UserRegistrationSerializer, UserSerializer, UserProfile
 from .models import CustomUser
 
 
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -29,6 +31,7 @@ def register_user(request):
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
@@ -38,16 +41,26 @@ def login_user(request):
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = authenticate(username=email, password=password)
-    if user:
-        tokens = get_tokens_for_user(user)
-        return Response({
-            'user': UserSerializer(user).data,
-            'tokens': tokens,
-            'message': 'Login successful'
-        }, status=status.HTTP_200_OK)
-    else:
+    email = email.lower()  # normalize
+    try:
+        user = CustomUser.objects.get(email=email)
+        if user.check_password(password):
+            tokens = get_tokens_for_user(user)
+            return Response({
+                'user': UserSerializer(user).data,
+                'tokens': tokens,
+                'message': 'Login successful'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    except CustomUser.DoesNotExist:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def whoami(request):
+    return Response(UserSerializer(request.user).data)
 
 
 @api_view(['GET'])
