@@ -13,14 +13,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('email', 'username', 'name', 'password')
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
-            email=validated_data['email'].lower(),  # normalize email
+            email=validated_data['email'].lower(),
             username=validated_data['username'],
             name=validated_data['name'],
             password=validated_data['password']
         )
         return user
+
 
 
 class UserSerializer(serializers.ModelSerializer):
