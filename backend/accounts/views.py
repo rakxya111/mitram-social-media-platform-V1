@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from .serializers import UserRegistrationSerializer, UserSerializer, UserProfileUpdateSerializer
 from .models import CustomUser
 
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -38,7 +39,8 @@ def login_user(request):
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = authenticate(username=email, password=password)
+    # Pass request here for compatibility with custom backend
+    user = authenticate(request=request, username=email, password=password)
     if user:
         tokens = get_tokens_for_user(user)
         return Response({
