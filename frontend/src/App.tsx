@@ -14,6 +14,7 @@ import {
   UpdateProfile,
 } from "./_root/pages";
 import RootLayout from "./_root/RootLayout";
+import PrivateRoute from "./PrivateRoute"; // ✅ Add this
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -27,17 +28,19 @@ const App = () => {
           <Route path="/sign-up" element={<SignupForm />} />
         </Route>
 
-        {/* Private Routes */}
-        <Route element={<RootLayout />}>
-          <Route index element={<Home />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/saved" element={<Saved />} />
-          <Route path="/all-users" element={<AllUsers />} />
-          <Route path="/create-post" element={<CreatePost />} />
-          <Route path="/update-post/:id" element={<EditPost />} />
-          <Route path="/posts/:id" element={<PostDetails />} />
-          <Route path="/profile/:id/*" element={<Profile />} />
-          <Route path="/update-profile/:id" element={<UpdateProfile />} />
+        {/* ✅ Private Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route element={<RootLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/saved" element={<Saved />} />
+            <Route path="/all-users" element={<AllUsers />} />
+            <Route path="/create-post" element={<CreatePost />} />
+            <Route path="/update-post/:id" element={<EditPost />} />
+            <Route path="/posts/:id" element={<PostDetails />} />
+            <Route path="/profile/:id/*" element={<Profile />} />
+            <Route path="/update-profile/:id" element={<UpdateProfile />} />
+          </Route>
         </Route>
       </Routes>
 
