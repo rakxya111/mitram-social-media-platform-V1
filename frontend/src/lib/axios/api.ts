@@ -1,5 +1,3 @@
-//Api.ts
-// api.ts
 import axiosInstance from './axiosInstance';
 
 export const registerUser = async (data: {
@@ -15,7 +13,7 @@ export const registerUser = async (data: {
     localStorage.setItem('refresh', res.data.refresh);
     return res.data;
   } catch (err) {
-    throw new Error("Registration failed");
+    throw new Error('Registration failed');
   }
 };
 
@@ -26,10 +24,9 @@ export const loginUser = async (data: { email: string; password: string }) => {
     localStorage.setItem('refresh', res.data.refresh);
     return res.data;
   } catch (err) {
-    throw new Error("Login failed");
+    throw new Error('Login failed');
   }
 };
-
 
 export const logoutUser = () => {
   localStorage.removeItem('access');
@@ -37,6 +34,7 @@ export const logoutUser = () => {
   return axiosInstance.post('auth/logout/');
 };
 
+// Make sure this matches your backend URL for current user profile
 export const getUserProfile = () => axiosInstance.get('auth/user/');
 
 export const updateUserProfile = (data: { bio?: string; image?: File }) => {
@@ -55,7 +53,7 @@ export const fetchPosts = (params?: {
   location?: string;
   ordering?: string;
   page?: number;
-}) => axiosInstance.get('posts/', { params }); // Fixed: removed leading slash
+}) => axiosInstance.get('posts/', { params });
 
 export const createPost = (data: {
   caption: string;
@@ -68,12 +66,11 @@ export const createPost = (data: {
   formData.append('tags', data.tags);
   if (data.location) formData.append('location', data.location);
   formData.append('image', data.image);
-  return axiosInstance.post('posts/', formData, { // Fixed: removed leading slash
+  return axiosInstance.post('posts/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
 
-// Multiple update options - choose the one you prefer
 export const updatePost = (
   postId: number,
   data: {
@@ -88,12 +85,11 @@ export const updatePost = (
   if (data.tags) formData.append('tags', data.tags);
   if (data.location) formData.append('location', data.location);
   if (data.image) formData.append('image', data.image);
-  return axiosInstance.put(`posts/${postId}/update-func/`, formData, { // Fixed: using function-based update
+  return axiosInstance.put(`posts/${postId}/update-func/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
 
-// Alternative update methods
 export const updatePostGeneric = (
   postId: number,
   data: {
@@ -127,7 +123,7 @@ export const updatePostDetail = (
   if (data.tags) formData.append('tags', data.tags);
   if (data.location) formData.append('location', data.location);
   if (data.image) formData.append('image', data.image);
-  return axiosInstance.patch(`posts/${postId}/`, formData, { // Using PATCH for partial updates
+  return axiosInstance.patch(`posts/${postId}/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
@@ -135,13 +131,12 @@ export const updatePostDetail = (
 export const deletePost = (postId: number) =>
   axiosInstance.delete(`posts/${postId}/delete/`);
 
-// Explore and User Posts
 export const explorePosts = (params?: {
   search?: string;
   tag?: string;
   location?: string;
   ordering?: string;
-}) => axiosInstance.get('explore/', { params }); // Fixed: changed from 'auth/explore/' to 'explore/'
+}) => axiosInstance.get('explore/', { params });
 
 export const fetchMyPosts = () => axiosInstance.get('my-posts/');
 
@@ -151,29 +146,23 @@ export const fetchUserPosts = (userId: number) =>
 export const fetchUserProfileWithPosts = (userId: number) =>
   axiosInstance.get(`user/${userId}/profile/`);
 
-// Saved Posts
 export const fetchSavedPosts = async () => {
-  const response = await axiosInstance.get("saved/");
-  return response.data;  // your backend should return array of saved posts here
-};
-// Saved Posts
-export const fetchLikedPosts = async () => {
-  const response = await axiosInstance.get("liked/");
-  return response.data;  // your backend should return array of saved posts here
+  const response = await axiosInstance.get('saved/');
+  return response.data;
 };
 
-// Like & Save toggles
+export const fetchLikedPosts = async () => {
+  const response = await axiosInstance.get('liked/');
+  return response.data;
+};
+
 export const toggleLikePost = (postId: number) =>
   axiosInstance.post(`posts/${postId}/like/`);
 
 export const toggleSavePost = (postId: number) =>
   axiosInstance.post(`posts/${postId}/save/`);
 
-// Additional helper functions for better error handling
-export const getPostById = (postId: number) =>
-  axiosInstance.get(`posts/${postId}/`);
+export const getPostById = (postId: number) => axiosInstance.get(`posts/${postId}/`);
 
-export const fetchPostsByUserId = (userId: string | number) => {
-  return axiosInstance.get(`/posts/?user=${userId}`);
-};
-
+export const fetchPostsByUserId = (userId: string | number) =>
+  axiosInstance.get(`posts/?user=${userId}`);

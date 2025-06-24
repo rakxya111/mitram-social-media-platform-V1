@@ -1,77 +1,19 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from .serializers import UserRegistrationSerializer, UserSerializer, UserProfileUpdateSerializer
-from .models import CustomUser
-
-import logging
 from django.db import transaction
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
+from .serializers import (
+    UserRegistrationSerializer,
+    UserSerializer,
+    UserProfileUpdateSerializer
+)
+from .models import CustomUser
+from django.contrib.auth import authenticate
+import logging
 
 logger = logging.getLogger(__name__)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_current_user(request):
-    user = request.user
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def register_user(request):
-    logger.info(f"Registration attempt with data: {request.data}")
-    
-    # Debug: Check if we can import and use the model
-    try:
-        from .models import CustomUser
-        logger.info(f"CustomUser model imported successfully")
-        
-        # Check if we can query the model
-        user_count = CustomUser.objects.count()
-        logger.info(f"Current user count: {user_count}")
-        
-    except Exception as e:
-        logger.error(f"Model import/query error: {str(e)}", exc_info=True)
-        return Response({
-            'error': 'Database model error',
-            'details': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    serializer = UserRegistrationSerializer(data=request.data)
-    
-    try:
-        if serializer.is_valid():
-            logger.info("Serializer is valid, attempting to save...")
-            
-            with transaction.atomic():
-                user = serializer.save()
-                tokens = get_tokens_for_user(user)
-                
-                logger.info(f"User {user.email} registered successfully")
-                
-                return Response({
-                    'user': UserSerializer(user).data,
-                    'tokens': tokens,
-                    'message': 'User registered successfully'
-                }, status=status.HTTP_201_CREATED)
-        else:
-            logger.warning(f"Serializer validation failed: {serializer.errors}")
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-    except Exception as e:
-        logger.error(f"Registration error: {str(e)}", exc_info=True)
-        return Response({
-            'error': 'Registration failed',
-            'details': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def get_tokens_for_user(user):
@@ -80,6 +22,57 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    user = request.user
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    logger.info(f"Registration attempt with data: {request.data}")
+
+    try:
+        from .models import CustomUser
+        logger.info("CustomUser model imported successfully")
+        user_count = CustomUser.objects.count()
+        logger.info(f"Current user count: {user_count}")
+    except Exception as e:
+        logger.error(f"Model import/query error: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'Database model error',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    serializer = UserRegistrationSerializer(data=request.data)
+
+    try:
+        if serializer.is_valid():
+            logger.info("Serializer is valid, attempting to save...")
+            with transaction.atomic():
+                user = serializer.save()
+                tokens = get_tokens_for_user(user)
+                logger.info(f"User {user.email} registered successfully")
+                return Response({
+                    'user': UserSerializer(user).data,
+                    'tokens': tokens,
+                    'message': 'User registered successfully'
+                }, status=status.HTTP_201_CREATED)
+        else:
+            logger.warning(f"Serializer validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'Registration failed',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -90,7 +83,7 @@ def login_user(request):
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    email = email.lower()  # normalize
+    email = email.lower()
     try:
         user = CustomUser.objects.get(email=email)
         if user.check_password(password):
@@ -108,18 +101,6 @@ def login_user(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def whoami(request):
-    return Response(UserSerializer(request.user).data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_profile(request):
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_user_by_id(request, id):
     try:
         user = CustomUser.objects.get(pk=id)
@@ -127,6 +108,7 @@ def get_user_by_id(request, id):
         return Response(serializer.data)
     except CustomUser.DoesNotExist:
         return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 def list_users(request):
