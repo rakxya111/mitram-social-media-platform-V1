@@ -9,8 +9,9 @@ export const registerUser = async (data: {
 }) => {
   try {
     const res = await axiosInstance.post('auth/register/', data);
-    localStorage.setItem('access', res.data.access);
-    localStorage.setItem('refresh', res.data.refresh);
+    // Extract tokens from 'tokens' field as backend returns
+    localStorage.setItem('access', res.data.tokens.access);
+    localStorage.setItem('refresh', res.data.tokens.refresh);
     return res.data;
   } catch (err) {
     throw new Error('Registration failed');
@@ -20,8 +21,9 @@ export const registerUser = async (data: {
 export const loginUser = async (data: { email: string; password: string }) => {
   try {
     const res = await axiosInstance.post('auth/login/', data);
-    localStorage.setItem('access', res.data.access);
-    localStorage.setItem('refresh', res.data.refresh);
+    // Extract tokens from 'tokens' field as backend returns
+    localStorage.setItem('access', res.data.tokens.access);
+    localStorage.setItem('refresh', res.data.tokens.refresh);
     return res.data;
   } catch (err) {
     throw new Error('Login failed');
@@ -29,25 +31,30 @@ export const loginUser = async (data: { email: string; password: string }) => {
 };
 
 export const logoutUser = () => {
+  const refresh = localStorage.getItem('refresh');
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
-  return axiosInstance.post('auth/logout/');
+  // Send refresh token in POST body as backend expects it for logout
+  return axiosInstance.post('auth/logout/', { refresh });
 };
 
-// Make sure this matches your backend URL for current user profile
-// Make sure this matches your backend URL for current user profile
+// Correct current user profile path (no 'auth/' prefix)
 export const getUserProfile = () => axiosInstance.get('user/');
 
-
-
-export const updateUserProfile = (data: { bio?: string; image?: File }) => {
+export const updateUserProfile = (
+  userId: number,
+  data: { bio?: string; image?: File }
+) => {
   const formData = new FormData();
   if (data.bio) formData.append('bio', data.bio);
   if (data.image) formData.append('image', data.image);
-  return axiosInstance.put('auth/profile/update/', formData, {
+
+  // Matches your backend update profile URL
+  return axiosInstance.put(`users/update/${userId}/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
+
 
 // Posts APIs
 export const fetchPosts = (params?: {
@@ -56,7 +63,7 @@ export const fetchPosts = (params?: {
   location?: string;
   ordering?: string;
   page?: number;
-}) => axiosInstance.get('posts/', { params });
+}) => axiosInstance.get("posts/", { params });
 
 export const createPost = (data: {
   caption: string;
@@ -65,12 +72,12 @@ export const createPost = (data: {
   image: File;
 }) => {
   const formData = new FormData();
-  formData.append('caption', data.caption);
-  formData.append('tags', data.tags);
-  if (data.location) formData.append('location', data.location);
-  formData.append('image', data.image);
-  return axiosInstance.post('posts/', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  formData.append("caption", data.caption);
+  formData.append("tags", data.tags);
+  if (data.location) formData.append("location", data.location);
+  formData.append("image", data.image);
+  return axiosInstance.post("posts/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
 
@@ -84,12 +91,12 @@ export const updatePost = (
   }
 ) => {
   const formData = new FormData();
-  if (data.caption) formData.append('caption', data.caption);
-  if (data.tags) formData.append('tags', data.tags);
-  if (data.location) formData.append('location', data.location);
-  if (data.image) formData.append('image', data.image);
+  if (data.caption) formData.append("caption", data.caption);
+  if (data.tags) formData.append("tags", data.tags);
+  if (data.location) formData.append("location", data.location);
+  if (data.image) formData.append("image", data.image);
   return axiosInstance.put(`posts/${postId}/update-func/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
 
@@ -103,12 +110,12 @@ export const updatePostGeneric = (
   }
 ) => {
   const formData = new FormData();
-  if (data.caption) formData.append('caption', data.caption);
-  if (data.tags) formData.append('tags', data.tags);
-  if (data.location) formData.append('location', data.location);
-  if (data.image) formData.append('image', data.image);
+  if (data.caption) formData.append("caption", data.caption);
+  if (data.tags) formData.append("tags", data.tags);
+  if (data.location) formData.append("location", data.location);
+  if (data.image) formData.append("image", data.image);
   return axiosInstance.put(`posts/${postId}/update/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
 
@@ -122,12 +129,12 @@ export const updatePostDetail = (
   }
 ) => {
   const formData = new FormData();
-  if (data.caption) formData.append('caption', data.caption);
-  if (data.tags) formData.append('tags', data.tags);
-  if (data.location) formData.append('location', data.location);
-  if (data.image) formData.append('image', data.image);
+  if (data.caption) formData.append("caption", data.caption);
+  if (data.tags) formData.append("tags", data.tags);
+  if (data.location) formData.append("location", data.location);
+  if (data.image) formData.append("image", data.image);
   return axiosInstance.patch(`posts/${postId}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
 
@@ -139,23 +146,25 @@ export const explorePosts = (params?: {
   tag?: string;
   location?: string;
   ordering?: string;
-}) => axiosInstance.get('explore/', { params });
+}) => axiosInstance.get("explore/", { params });
 
-export const fetchMyPosts = () => axiosInstance.get('my-posts/');
+export const fetchMyPosts = () => axiosInstance.get("my-posts/");
 
+// Fetch posts by user id (correct path with 'users')
 export const fetchUserPosts = (userId: number) =>
-  axiosInstance.get(`user/${userId}/posts/`);
+  axiosInstance.get(`users/${userId}/posts/`);
 
+// Fetch user profile with posts by user id
 export const fetchUserProfileWithPosts = (userId: number) =>
-  axiosInstance.get(`user/${userId}/profile/`);
+  axiosInstance.get(`users/${userId}/profile/`);
 
 export const fetchSavedPosts = async () => {
-  const response = await axiosInstance.get('saved/');
+  const response = await axiosInstance.get("saved/");
   return response.data;
 };
 
 export const fetchLikedPosts = async () => {
-  const response = await axiosInstance.get('liked/');
+  const response = await axiosInstance.get("liked/");
   return response.data;
 };
 

@@ -9,11 +9,9 @@ const axiosInstance = axios.create({
   baseURL,
 });
 
-// ─── Request Interceptor ───────────────────────────────
-import type { InternalAxiosRequestConfig } from "axios";
-
+// Request interceptor to attach token (except auth free endpoints)
 axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  (config) => {
     const token = localStorage.getItem("access");
 
     const authFreeEndpoints = [
@@ -22,7 +20,6 @@ axiosInstance.interceptors.request.use(
       "auth/token/refresh/",
     ];
 
-    // Normalize url path without leading slash for matching
     const urlPath = config.url?.startsWith("/")
       ? config.url.slice(1)
       : config.url;
@@ -33,9 +30,8 @@ axiosInstance.interceptors.request.use(
 
     if (token && !isAuthFree) {
       config.headers = config.headers ?? {};
-      (config.headers as Record<string, string>)[
-        "Authorization"
-      ] = `Bearer ${token}`;
+      // TypeScript will infer the correct type for headers
+      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
     return config;
@@ -43,7 +39,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── Response Interceptor for Token Refresh ─────────────
+// Response interceptor to auto-refresh token on 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -64,19 +60,14 @@ axiosInstance.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const refreshUrl = `${baseURL.replace(
-            /\/+$/,
-            ""
-          )}/auth/token/refresh/`;
+          const refreshUrl = `${baseURL.replace(/\/+$/, "")}/auth/token/refresh/`;
           const res = await axios.post(refreshUrl, { refresh: refreshToken });
 
           const { access } = res.data;
           localStorage.setItem("access", access);
 
           originalRequest.headers = originalRequest.headers ?? {};
-          (originalRequest.headers as Record<string, string>)[
-            "Authorization"
-          ] = `Bearer ${access}`;
+          (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${access}`;
 
           return axiosInstance(originalRequest);
         } catch (refreshError) {
@@ -91,6 +82,9 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
+
 
 // ─── Utility Function: Delete Post ─────────────────────
 export const deletePost = async (id: string | number): Promise<void> => {
