@@ -13,7 +13,7 @@ const AuthLayout = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" />;
+    return <Navigate to="/sign-in" />;
   }
 
   return (
