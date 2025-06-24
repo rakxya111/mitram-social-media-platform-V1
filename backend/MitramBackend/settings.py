@@ -20,8 +20,10 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     "localhost", 
     "127.0.0.1", 
-    "https://mitram-social-media-platform-v1.onrender.com",  # ⚠️ REPLACE WITH YOUR ACTUAL RENDER URL
+    "mitram-social-media-platform-v1.onrender.com",  
+    "mitram-social-media-platform-v1.vercel.app",   
 ]
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -161,12 +163,26 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://mitram-social-media-platform-v1.vercel.app",
+    "https://mitram-social-media-platform-v1.vercel.app",  # ✅ NO trailing slash
 ]
 
 
-CORS_ALLOW_ALL_ORIGINS = False  
+# For production security
+CORS_ALLOW_ALL_ORIGINS = False  # ✅ Set to False for production
 CORS_ALLOW_CREDENTIALS = True
+
+# Optional: Add CORS headers for better compatibility
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailBackend',  # Your custom backend
