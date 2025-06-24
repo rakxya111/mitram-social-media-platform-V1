@@ -49,22 +49,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getImageUrl = (imagePath: string) => {
     const baseUrl =
-      import.meta.env.VITE_API_BASE_URL?.replace("/api/", "") ||
+      import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, "") ||
       "http://localhost:8000";
-    return `${baseUrl}${imagePath}`;
+    return `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
   };
 
   const checkAuthUser = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access");
-      if (!token) throw new Error("No token found");
+      if (!token) {
+        setUser(INITIAL_USER);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return false;
+      }
 
-      // Verify token validity
       await axiosInstance.post("auth/token/verify/", { token });
 
-      // Fetch user profile (use consistent endpoint from your backend)
-      const res = await axiosInstance.get("auth/user/");
+      const res = await axiosInstance.get("profile/");
+
       const userData = res.data;
 
       setUser({
@@ -83,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (error) {
       console.error("❌ Auth check failed:", error);
+
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+
       setUser(INITIAL_USER);
       setIsAuthenticated(false);
       return false;
@@ -97,6 +105,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const isValid = await checkAuthUser();
     setIsAuthenticated(isValid);
+
+    if (isValid) {
+      navigate("/"); // Redirect to home/dashboard after login
+    }
   };
 
   const logout = (): void => {

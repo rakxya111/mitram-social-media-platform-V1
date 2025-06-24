@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { SignupValidation } from "@/lib/validation";
+import { SignupValidation } from "@/lib/validation"; // Your zod schema
 import { Loader } from "lucide-react";
 import * as z from "zod";
 import axiosInstance from "@/lib/axios/axiosInstance";
@@ -43,15 +43,13 @@ const SignupForm = () => {
       navigate("/sign-in");
     } catch (err: any) {
       if (err.response && err.response.data) {
-        console.log("Signup error:", err.response.data);
-        // Show combined backend error messages if present
+        // Combine all backend errors into a message
         const message = Object.values(err.response.data)
           .flat()
           .join(" ") || "Something went wrong. Please try again.";
         toast({ title: message });
       } else {
-        console.log("Signup error:", err.message);
-        toast({ title: "Signup error" });
+        toast({ title: "Signup error. Please try again." });
       }
     } finally {
       setIsLoading(false);
@@ -63,9 +61,11 @@ const SignupForm = () => {
       <div className="sm:w-420 flex-center flex-col">
         <img src="/assets/images/Ram.svg" alt="logo" height={200} />
 
-        <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">Create a new Account</h2>
+        <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
+          Create a new Account
+        </h2>
         <p className="text-light-3 small-medium md:base-regular ">
-          To use Mitram, please do enter your details
+          To use Mitram, please enter your details
         </p>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex-col gap-5 w-full">
@@ -146,7 +146,7 @@ const SignupForm = () => {
           >
             {isLoading ? (
               <div className="flex-center gap-2">
-                <Loader /> Loading......
+                <Loader /> Loading...
               </div>
             ) : (
               "Sign up"
@@ -154,7 +154,7 @@ const SignupForm = () => {
           </Button>
 
           <p className="text-small-regular text-center mt-2">
-            Already have an account{" "}
+            Already have an account?{" "}
             <Link
               to="/sign-in"
               className="text-primary-500 text-small-semibold ml-1 underline underline-offset-2"

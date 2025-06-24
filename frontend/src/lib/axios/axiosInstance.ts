@@ -1,13 +1,18 @@
 import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/";
 
 // Create main Axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/",
+  baseURL,
 });
 
 // ─── Request Interceptor ───────────────────────────────
+import type { InternalAxiosRequestConfig } from "axios";
+
 axiosInstance.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("access");
 
     const authFreeEndpoints = [
@@ -16,12 +21,16 @@ axiosInstance.interceptors.request.use(
       "auth/token/refresh/",
     ];
 
+    // Normalize url path without leading slash for matching
+    const urlPath = config.url?.startsWith("/") ? config.url.slice(1) : config.url;
+
     const isAuthFree = authFreeEndpoints.some((endpoint) =>
-      config.url?.endsWith(endpoint)
+      urlPath?.endsWith(endpoint)
     );
 
     if (token && !isAuthFree) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = config.headers ?? {};
+      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
     return config;
@@ -33,7 +42,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
     const isRefreshEndpoint = originalRequest.url?.includes("auth/token/refresh/");
 
     if (
@@ -47,16 +56,22 @@ axiosInstance.interceptors.response.use(
       if (refreshToken) {
         try {
           const res = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}auth/token/refresh/`,
+            `${baseURL}auth/token/refresh/`,
             { refresh: refreshToken }
           );
 
           const { access } = res.data;
           localStorage.setItem("access", access);
 
-          originalRequest.headers.Authorization = `Bearer ${access}`;
+          // Ensure headers exist
+          originalRequest.headers = originalRequest.headers ?? {};
+          // Update Authorization header with new access token
+          (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${access}`;
+
+          // Retry the original request with new token
           return axiosInstance(originalRequest);
         } catch (refreshError) {
+          // Token refresh failed - clear tokens and redirect to login
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
           window.location.href = "/sign-in";
@@ -74,5 +89,5 @@ export const deletePost = async (id: string | number): Promise<void> => {
   await axiosInstance.delete(`/posts/${id}/delete/`);
 };
 
-// ─── Exports ───────────────────────────────────────────
+// ─── Export Axios Instance ─────────────────────────────
 export default axiosInstance;
