@@ -14,7 +14,7 @@ urlpatterns = [
 
     # User specific posts
     path('my-posts/', views.my_posts, name='my-posts'),
-    path('user/<int:user_id>/posts/', views.UserPostView.as_view(), name='user-posts'),
+    path('users/<int:user_id>/posts/', views.UserPostView.as_view(), name='user-posts'),
     
     # Saved posts
     path('saved/', views.SavedPostView.as_view(), name='saved-posts'),

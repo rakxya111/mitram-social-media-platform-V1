@@ -4,6 +4,8 @@ import { useUserContext } from "@/context/AuthContext"; // adjust path as needed
 const AuthLayout = () => {
   const { isAuthenticated, isLoading } = useUserContext();
 
+  
+
   if (isLoading) {
     return (
       <div className="w-full h-screen flex justify-center items-center">
@@ -13,8 +15,10 @@ const AuthLayout = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/sign-in" />;
+    return <Navigate to="/" />;
+
   }
+  
 
   return (
     <>

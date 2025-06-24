@@ -14,21 +14,32 @@ import {
   UpdateProfile,
 } from "./_root/pages";
 import RootLayout from "./_root/RootLayout";
-import PrivateRoute from "./PrivateRoute"; // ✅ Add this
+import PrivateRoute from "./PrivateRoute";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { useUserContext } from "./context/AuthContext";
 
 const App = () => {
+  const { isLoading } = useUserContext();
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <p className="text-lg font-semibold">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <main className="flex h-screen">
       <Routes>
-        {/* Public Routes */}
+        {/* Public Auth Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/sign-in" element={<SigninForm />} />
           <Route path="/sign-up" element={<SignupForm />} />
         </Route>
 
-        {/* ✅ Private Routes */}
+        {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
           <Route element={<RootLayout />}>
             <Route index element={<Home />} />

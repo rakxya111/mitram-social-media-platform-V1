@@ -8,24 +8,29 @@ import type {
   Post,
   Comment,
 } from '@/types';
+
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from "axios";
 
+// Create Axios instance with baseURL from env or default
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/',
 });
 
+// --- REQUEST INTERCEPTOR ---
+// Attach access token in headers for authorized requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
 
-    // Auth-free endpoints - no auth header needed
+    // List of auth-free endpoints (no token needed)
     const authFreeEndpoints = [
       "auth/login/",
       "auth/register/",
       "auth/token/refresh/",
     ];
 
+    // Check if current request URL is auth-free
     const isAuthFree = authFreeEndpoints.some(endpoint =>
       config.url?.includes(endpoint) || config.url?.endsWith(endpoint)
     );
@@ -39,6 +44,8 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// --- RESPONSE INTERCEPTOR ---
+// Automatically refresh token on 401 Unauthorized error
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -61,6 +68,7 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
+          // Refresh token failed - clear tokens & redirect to login
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
           window.location.href = "/sign-in";
@@ -73,6 +81,7 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// --- Generic API methods wrapped on axiosInstance ---
 const api = {
   get: <T = any>(url: string, config?: any) => axiosInstance.get<T>(url, config),
   post: <T = any>(url: string, data?: any, config?: any) => axiosInstance.post<T>(url, data, config),
@@ -80,6 +89,7 @@ const api = {
   put: <T = any>(url: string, data?: any, config?: any) => axiosInstance.put<T>(url, data, config),
   delete: <T = any>(url: string, config?: any) => axiosInstance.delete<T>(url, config),
 
+  // Helper for file uploads using multipart/form-data
   uploadFile: <T = any>(url: string, file: File, otherData?: Record<string, any>) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -94,6 +104,8 @@ const api = {
   }
 };
 
+// --- API ENDPOINTS ---
+// Centralized endpoints for easy modification
 const ENDPOINTS = {
   AUTH: {
     LOGIN: 'auth/login/',
@@ -130,6 +142,7 @@ const ENDPOINTS = {
   }
 };
 
+// --- Token Manager for localStorage handling ---
 const tokenManager = {
   setTokens: (access: string, refresh: string) => {
     localStorage.setItem('access', access);
@@ -144,7 +157,7 @@ const tokenManager = {
   isAuthenticated: () => !!localStorage.getItem('access'),
 };
 
-// ─── AUTH ────────────────────────────────
+// --- AUTH QUERIES --- (login, register, logout, get user)
 export const authQueries = {
   login: async (credentials: LoginData): Promise<AuthTokens> => {
     const res = await api.post<AuthTokens>(ENDPOINTS.AUTH.LOGIN, credentials);
@@ -179,10 +192,11 @@ export const authQueries = {
   }
 };
 
+// --- PROFILE UPDATE ---
 export interface UpdateProfileData {
   name: string;
   bio: string;
-  image?: File; // optional
+  image?: File; // optional file upload
 }
 
 export const updateProfile = async (userId: string, data: UpdateProfileData) => {
@@ -202,7 +216,7 @@ export const updateProfile = async (userId: string, data: UpdateProfileData) => 
   return response.data;
 };
 
-// ─── POSTS ───────────────────────────────
+// --- POSTS QUERIES ---
 export const postQueries = {
   getAllPosts: async (page = 1, limit = 10): Promise<{ results: Post[]; count: number; next: string | null; previous: string | null }> => {
     const res = await api.get(`${ENDPOINTS.POSTS.LIST}?page=${page}&limit=${limit}`);
@@ -245,7 +259,7 @@ export const postQueries = {
   },
 };
 
-// ─── COMMENTS ───────────────────────────────
+// --- COMMENTS QUERIES ---
 export const commentQueries = {
   getComments: async (postId: string): Promise<Comment[]> => {
     const res = await api.get<Comment[]>(ENDPOINTS.COMMENTS.LIST(postId));
@@ -267,7 +281,7 @@ export const commentQueries = {
   }
 };
 
-// ─── USERS ───────────────────────────────
+// --- USER QUERIES ---
 export const userQueries = {
   getUser: async (id: string): Promise<IUser> => {
     const res = await api.get<IUser>(ENDPOINTS.USERS.PROFILE(id));
@@ -300,7 +314,7 @@ export const userQueries = {
   }
 };
 
-// ─── UTILS ───────────────────────────────
+// --- UTILITIES ---
 export const apiUtils = {
   isAuthenticated: (): boolean => tokenManager.isAuthenticated(),
 
@@ -322,7 +336,9 @@ export const apiUtils = {
   }
 };
 
-// React Query Hooks Examples
+// --- REACT QUERY EXAMPLES ---
+// Hooks you can use inside React components
+
 export const useGetUsers = () => {
   return useQuery({
     queryKey: ['getUsers'],
@@ -357,7 +373,9 @@ export const useUpdateProfile = (userId: string) => {
   });
 };
 
-// ─── EXPORTS ───────────────────────────────
+// --- EXPORT ALL ---
+// You can import these wherever you need to call API
+
 export {
   authQueries as auth,
   postQueries as posts,

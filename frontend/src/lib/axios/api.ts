@@ -1,4 +1,8 @@
+// Fixed api.ts - Remove token storage from API functions
+
 import axiosInstance from './axiosInstance';
+
+// ==================== Auth ====================
 
 export const registerUser = async (data: {
   name: string;
@@ -8,10 +12,10 @@ export const registerUser = async (data: {
   password_confirm: string;
 }) => {
   try {
-    const res = await axiosInstance.post('auth/register/', data);
-    // Extract tokens from 'tokens' field as backend returns
-    localStorage.setItem('access', res.data.tokens.access);
-    localStorage.setItem('refresh', res.data.tokens.refresh);
+    const res = await axiosInstance.post('register/', data);
+    // REMOVED: Don't store tokens here - let AuthContext handle it
+    // localStorage.setItem('access', res.data.tokens.access);
+    // localStorage.setItem('refresh', res.data.tokens.refresh);
     return res.data;
   } catch (err) {
     throw new Error('Registration failed');
@@ -20,10 +24,10 @@ export const registerUser = async (data: {
 
 export const loginUser = async (data: { email: string; password: string }) => {
   try {
-    const res = await axiosInstance.post('auth/login/', data);
-    // Extract tokens from 'tokens' field as backend returns
-    localStorage.setItem('access', res.data.tokens.access);
-    localStorage.setItem('refresh', res.data.tokens.refresh);
+    const res = await axiosInstance.post('login/', data);
+    // REMOVED: Don't store tokens here - let AuthContext handle it
+    // localStorage.setItem('access', res.data.tokens.access);
+    // localStorage.setItem('refresh', res.data.tokens.refresh);
     return res.data;
   } catch (err) {
     throw new Error('Login failed');
@@ -34,11 +38,9 @@ export const logoutUser = () => {
   const refresh = localStorage.getItem('refresh');
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
-  // Send refresh token in POST body as backend expects it for logout
-  return axiosInstance.post('auth/logout/', { refresh });
+  return axiosInstance.post('logout/', { refresh });
 };
 
-// Correct current user profile path (no 'auth/' prefix)
 export const getUserProfile = () => axiosInstance.get('user/');
 
 export const updateUserProfile = (
@@ -49,12 +51,10 @@ export const updateUserProfile = (
   if (data.bio) formData.append('bio', data.bio);
   if (data.image) formData.append('image', data.image);
 
-  // Matches your backend update profile URL
   return axiosInstance.put(`users/update/${userId}/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
-
 
 // Posts APIs
 export const fetchPosts = (params?: {

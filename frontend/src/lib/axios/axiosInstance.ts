@@ -9,28 +9,26 @@ const axiosInstance = axios.create({
   baseURL,
 });
 
-// Request interceptor to attach token (except auth free endpoints)
+// Request interceptor: Attach Authorization header
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
 
+    // ✅ Match your current Django routes (no "auth/" prefix anymore)
     const authFreeEndpoints = [
-      "auth/login/",
-      "auth/register/",
-      "auth/token/refresh/",
+      "login/",
+      "register/",
+      "token/refresh/",
     ];
 
-    const urlPath = config.url?.startsWith("/")
-      ? config.url.slice(1)
-      : config.url;
+    const urlPath = (config.url || "").replace(/^\/+/, "");
 
     const isAuthFree = authFreeEndpoints.some((endpoint) =>
-      urlPath?.endsWith(endpoint)
+      urlPath.endsWith(endpoint)
     );
 
     if (token && !isAuthFree) {
       config.headers = config.headers ?? {};
-      // TypeScript will infer the correct type for headers
       (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
@@ -39,16 +37,16 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to auto-refresh token on 401
+// Response interceptor: Auto-refresh token on 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
     };
-    const isRefreshEndpoint = originalRequest.url?.includes(
-      "auth/token/refresh/"
-    );
+
+    const isRefreshEndpoint =
+      originalRequest.url?.includes("token/refresh/");
 
     if (
       error.response?.status === 401 &&
@@ -60,7 +58,7 @@ axiosInstance.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const refreshUrl = `${baseURL.replace(/\/+$/, "")}/auth/token/refresh/`;
+          const refreshUrl = `${baseURL.replace(/\/+$/, "")}/token/refresh/`;
           const res = await axios.post(refreshUrl, { refresh: refreshToken });
 
           const { access } = res.data;
@@ -73,7 +71,7 @@ axiosInstance.interceptors.response.use(
         } catch (refreshError) {
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
-          window.location.href = "/sign-in";
+          window.location.href = "/sign-in"; // Redirect to login
           return Promise.reject(refreshError);
         }
       }
@@ -83,10 +81,7 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-
-
-
-// ─── Utility Function: Delete Post ─────────────────────
+// ─── Optional Utility: Delete Post ─────────────────────
 export const deletePost = async (id: string | number): Promise<void> => {
   await axiosInstance.delete(`/posts/${id}/delete/`);
 };

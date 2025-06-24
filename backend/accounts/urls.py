@@ -16,6 +16,5 @@ urlpatterns = [
     path('users/<int:id>/', views.get_user_by_id, name='get_user_by_id'),
     path('users/update/<int:pk>/', views.update_user_profile, name='update_profile'),
     path('users/list/', views.list_users, name='list_users'),
-
-   
+    # path('profile/', views.get_user_profile, name='profile'),
 ]
