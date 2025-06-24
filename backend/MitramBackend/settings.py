@@ -161,11 +161,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://mitram-social-media-platform-v1.vercel.app/",
+    "https://mitram-social-media-platform-v1.vercel.app",
 ]
 
 
-CORS_ALLOW_ALL_ORIGINS = False  # ⚠️ Set to False for production
+CORS_ALLOW_ALL_ORIGINS = False  
 CORS_ALLOW_CREDENTIALS = True
 
 AUTHENTICATION_BACKENDS = [
