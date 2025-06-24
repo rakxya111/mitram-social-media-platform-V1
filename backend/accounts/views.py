@@ -17,6 +17,13 @@ from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    user = request.user
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):

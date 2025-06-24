@@ -16,4 +16,6 @@ urlpatterns = [
     path('logout/',views.logout_user,name="logout"),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('user/', views.get_current_user, name='get_current_user'),
+
 ]
