@@ -4,26 +4,23 @@ from datetime import timedelta
 import dj_database_url
 from dotenv import load_dotenv
 
-load_dotenv()  # Load local .env file, ignored in deployed environments
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = os.environ.get(
-    "SECRET_KEY", 
+    "SECRET_KEY",
     "django-insecure-07lg$wpd*^_*k2&-ot=tv=7kxer%#bwtfcev)k!ou)i!bhq=0#"
 )
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# Update ALLOWED_HOSTS
-
 ALLOWED_HOSTS = [
-    "localhost", 
-    "127.0.0.1", 
-    "mitram-social-media-platform-v1.onrender.com",  
-    "mitram-social-media-platform-v1.vercel.app",   
+    "localhost",
+    "127.0.0.1",
+    "mitram-social-media-platform-v1.onrender.com",
+    "mitram-social-media-platform-v1.vercel.app",
 ]
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -36,6 +33,7 @@ INSTALLED_APPS = [
 
     'api',
     'accounts',
+
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -46,7 +44,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files in prod
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,12 +72,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'MitramBackend.wsgi.application'
 
-# Database configuration: switch between local and production
-
+# Database
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Production: Use DATABASE_URL (from Render)
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -88,7 +84,6 @@ if DATABASE_URL:
         )
     }
 else:
-    # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -100,11 +95,9 @@ else:
         }
     }
 
-
-
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# REST Framework settings
+# REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -121,7 +114,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# JWT settings
+# JWT Configuration
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -131,12 +124,12 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
-# Password validation
+# Password Validation
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internationalization
@@ -145,33 +138,36 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (served with WhiteNoise in production)
+# Static Files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# Media Files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
+# Default PK Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
+# ────────────────────────────────
+# ✅ CORS & CSRF CONFIG (fixed)
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://mitram-social-media-platform-v1.vercel.app",  # ✅ NO trailing slash
+    "https://mitram-social-media-platform-v1.vercel.app",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://mitram-social-media-platform-v1.vercel.app",
+]
 
-# For production security
-CORS_ALLOW_ALL_ORIGINS = False  # ✅ Set to False for production
-CORS_ALLOW_CREDENTIALS = True
-
-# Optional: Add CORS headers for better compatibility
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -185,11 +181,12 @@ CORS_ALLOW_HEADERS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.backends.EmailBackend',  # Your custom backend
-    'django.contrib.auth.backends.ModelBackend',  # Keep default fallback
+    'accounts.backends.EmailBackend',  # custom backend
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Add this to your settings.py for better error visibility in production
+# ────────────────────────────────
+# ✅ Logging for production
 
 LOGGING = {
     'version': 1,

@@ -1,5 +1,3 @@
-// AuthContext.tsx
-
 import { useNavigate } from "react-router-dom";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -29,7 +27,7 @@ type IContextType = {
   logout: () => void;
 };
 
-const INITIAL_STATE = {
+const INITIAL_STATE: IContextType = {
   user: INITIAL_USER,
   isLoading: false,
   isAuthenticated: false,
@@ -49,28 +47,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Or better yet, create a helper function:
-const getImageUrl = (imagePath: string) => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/', '') || 'http://localhost:8000';
-  return `${baseUrl}${imagePath}`;
-};
+  const getImageUrl = (imagePath: string) => {
+    const baseUrl =
+      import.meta.env.VITE_API_BASE_URL?.replace("/api/", "") ||
+      "http://localhost:8000";
+    return `${baseUrl}${imagePath}`;
+  };
 
-  // Check if access token is valid and fetch user profile
   const checkAuthUser = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access");
-      if (!token) {
-        setIsAuthenticated(false);
-        setUser(INITIAL_USER);
-        return false;
-      }
+      if (!token) throw new Error("No token found");
 
       // Verify token validity
       await axiosInstance.post("auth/token/verify/", { token });
 
-      // Fetch user profile
-      const res = await axiosInstance.get("auth/profile/");
+      // Fetch user profile (use consistent endpoint from your backend)
+      const res = await axiosInstance.get("auth/user/");
       const userData = res.data;
 
       setUser({
@@ -88,43 +82,36 @@ const getImageUrl = (imagePath: string) => {
       setIsAuthenticated(true);
       return true;
     } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsAuthenticated(false);
+      console.error("❌ Auth check failed:", error);
       setUser(INITIAL_USER);
+      setIsAuthenticated(false);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Login: store tokens, then validate user & set state
   const login = async (access: string, refresh: string): Promise<void> => {
     localStorage.setItem("access", access);
     localStorage.setItem("refresh", refresh);
 
-    const success = await checkAuthUser();
-    if (success) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    const isValid = await checkAuthUser();
+    setIsAuthenticated(isValid);
   };
 
-  // Logout: clear tokens and user info, redirect to sign-in page
   const logout = (): void => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
-    setIsAuthenticated(false);
     setUser(INITIAL_USER);
+    setIsAuthenticated(false);
     navigate("/sign-in");
   };
 
-  // On mount, check if user is authenticated
   useEffect(() => {
     checkAuthUser();
   }, []);
 
-  const value = {
+  const value: IContextType = {
     user,
     isLoading,
     isAuthenticated,

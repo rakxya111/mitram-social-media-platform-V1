@@ -1,13 +1,11 @@
-//axiosInstance.ts
-
 import axios from "axios";
 
 // Create main Axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/",
 });
 
-// Request Interceptor
+// ─── Request Interceptor ───────────────────────────────
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
@@ -18,7 +16,6 @@ axiosInstance.interceptors.request.use(
       "auth/token/refresh/",
     ];
 
-    // Only skip auth header for login, register, refresh
     const isAuthFree = authFreeEndpoints.some((endpoint) =>
       config.url?.endsWith(endpoint)
     );
@@ -32,41 +29,34 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor for Token Refresh
+// ─── Response Interceptor for Token Refresh ─────────────
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    const isTokenRefreshURL =
-      originalRequest.url?.includes("auth/token/refresh/");
+    const isRefreshEndpoint = originalRequest.url?.includes("auth/token/refresh/");
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isTokenRefreshURL
+      !isRefreshEndpoint
     ) {
       originalRequest._retry = true;
-
       const refreshToken = localStorage.getItem("refresh");
 
       if (refreshToken) {
         try {
-          // 🔒 Use default axios to avoid interceptor recursion
-          const response = await axios.post(
-            import.meta.env.VITE_API_BASE_URL + "auth/token/refresh/",
+          const res = await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}auth/token/refresh/`,
             { refresh: refreshToken }
           );
 
-          const { access } = response.data;
-
+          const { access } = res.data;
           localStorage.setItem("access", access);
 
-          // Update and retry original request
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          // Clear tokens and redirect to login
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
           window.location.href = "/sign-in";
@@ -79,10 +69,10 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Delete post function
-const deletePost = async (id: string | number): Promise<void> => {
-  await axiosInstance.delete(`/posts/${id}/delete-func/`);
+// ─── Utility Function: Delete Post ─────────────────────
+export const deletePost = async (id: string | number): Promise<void> => {
+  await axiosInstance.delete(`/posts/${id}/delete/`);
 };
 
-export { deletePost };
+// ─── Exports ───────────────────────────────────────────
 export default axiosInstance;

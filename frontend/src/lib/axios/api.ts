@@ -1,22 +1,35 @@
 //Api.ts
+// api.ts
 import axiosInstance from './axiosInstance';
 
-// Auth APIs
-export const registerUser = (data: {
+export const registerUser = async (data: {
   name: string;
   email: string;
   username: string;
   password: string;
   password_confirm: string;
-}) => axiosInstance.post('auth/register/', data);
-
-export const loginUser = (data: { email: string; password: string }) =>
-  axiosInstance.post('auth/login/', data).then((res) => {
-    // Store tokens on successful login
+}) => {
+  try {
+    const res = await axiosInstance.post('auth/register/', data);
     localStorage.setItem('access', res.data.access);
     localStorage.setItem('refresh', res.data.refresh);
     return res.data;
-  });
+  } catch (err) {
+    throw new Error("Registration failed");
+  }
+};
+
+export const loginUser = async (data: { email: string; password: string }) => {
+  try {
+    const res = await axiosInstance.post('auth/login/', data);
+    localStorage.setItem('access', res.data.access);
+    localStorage.setItem('refresh', res.data.refresh);
+    return res.data;
+  } catch (err) {
+    throw new Error("Login failed");
+  }
+};
+
 
 export const logoutUser = () => {
   localStorage.removeItem('access');
