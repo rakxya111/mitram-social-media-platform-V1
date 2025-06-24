@@ -30,6 +30,8 @@ const getFullImageUrl = (imagePath?: string) => {
   return `${BACKEND_URL}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
 };
 
+console.log(getFullImageUrl);
+
 const Profile = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useUserContext();
