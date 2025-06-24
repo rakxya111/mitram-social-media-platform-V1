@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
 import { multiFormatDateString } from "@/lib/utils";
-
 import PostStats from "@/components/shared/PostStats";
 import type { Post } from "@/types";
 import { useUserContext } from "@/context/AuthContext";
 import { useState } from "react";
-import { getImageUrl } from "@/lib/utils/image";
 
 interface PostCardProps {
   post: Post;
@@ -14,7 +12,7 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const { user, isAuthenticated } = useUserContext();
 
-  const [postState] = useState(post);
+  const [postState, ] = useState(post);
 
   const tags: string[] =
     typeof postState.tags === "string"
@@ -23,8 +21,14 @@ const PostCard = ({ post }: PostCardProps) => {
       ? postState.tags
       : [];
 
+  // Fix: compare user.id and post.creator.id as numbers directly
   const isCurrentUserPost =
     isAuthenticated && user?.id !== 0 && user?.id === postState.creator.id;
+
+console.log("user.id type & value:", typeof user?.id, user?.id);
+console.log("post.creator type & value:", typeof postState.creator, postState.creator);
+console.log("post.creator.id type & value:", typeof postState.creator.id, postState.creator.id);
+
 
   return (
     <div className="post-card">
@@ -33,7 +37,9 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="flex items-center gap-3">
           <Link to={`/profile/${postState.creator.id}`}>
             <img
-              src={getImageUrl(postState.creator.image)}  // <-- updated here
+              src={
+                postState.creator.image || "/assets/icons/profile-placeholder.svg"
+              }
               alt="creator"
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -47,7 +53,7 @@ const PostCard = ({ post }: PostCardProps) => {
           </div>
         </div>
 
-        {/* Edit icon */}
+        {/* Show edit icon only if user owns post */}
         {isCurrentUserPost && (
           <Link to={`/update-post/${postState.id}`}>
             <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
@@ -69,7 +75,7 @@ const PostCard = ({ post }: PostCardProps) => {
         </div>
 
         <img
-          src={getImageUrl(postState.image)}  // <-- updated here
+          src={postState.image || "/assets/icons/profile-placeholder.svg"}
           alt="post"
           className="post-card_img w-full h-auto rounded-lg"
         />

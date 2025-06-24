@@ -6,7 +6,7 @@ import { posts } from "@/lib/Django/queries";
 import { useUserContext } from "@/context/AuthContext";
 import PostStats from "@/components/shared/PostStats";
 import { multiFormatDateString } from "@/lib/utils";
-
+// import { getFullImageUrl } from "@/lib/utils/imageHelper"; // ✅ Added
 
 import type { Post } from "@/types";
 import { getImageUrl } from "@/lib/utils/image";
@@ -44,7 +44,7 @@ const PostDetails = () => {
     setDeleting(true);
     try {
       await posts.deletePost(post.id.toString());
-      navigate("/");
+      navigate("/"); // redirect after deletion
     } catch (error) {
       console.error("Failed to delete post:", error);
       setDeleting(false);
@@ -62,7 +62,7 @@ const PostDetails = () => {
   return (
     <div className="post_details-container">
       <div className="post_details-card max-w-5xl mx-auto">
-        {/* ✅ Post image */}
+        {/* ✅ Use helper for post image */}
         <img src={getImageUrl(post.image)} alt="post" className="post_details-img" />
 
         <div className="post_details-info">
@@ -71,7 +71,7 @@ const PostDetails = () => {
               to={`/profile/${post.creator.id}`}
               className="flex items-center gap-3"
             >
-              {/* ✅ Creator profile image */}
+              {/* ✅ Use helper for creator image */}
               <img
                 src={getImageUrl(post.creator.image)}
                 alt="creator"
@@ -88,36 +88,38 @@ const PostDetails = () => {
               </div>
             </Link>
 
-            {user?.id === post.creator.id && (
-              <div className="flex items-center gap-4 ml-10">
-                <Link
-                  to={`/update-post/${post.id}/`}
-                  className="text-blue-500 hover:underline"
-                  title="Edit Post"
-                >
-                  <img
-                    src="/assets/icons/edit.svg"
-                    alt="edit"
-                    width={24}
-                    height={24}
-                  />
-                </Link>
+            <div className="flex items-center gap-4 ml-10">
+              {user?.id === post.creator.id && (
+                <>
+                  <Link
+                    to={`/update-post/${post.id}/`}
+                    className="text-blue-500 hover:underline"
+                    title="Edit Post"
+                  >
+                    <img
+                      src="/assets/icons/edit.svg"
+                      alt="edit"
+                      width={24}
+                      height={24}
+                    />
+                  </Link>
 
-                <button
-                  onClick={handleDeletePost}
-                  disabled={deleting}
-                  className="text-red-600 hover:text-red-800"
-                  title="Delete Post"
-                >
-                  <img
-                    src="/assets/icons/delete.svg"
-                    alt="delete"
-                    width={24}
-                    height={24}
-                  />
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={handleDeletePost}
+                    disabled={deleting}
+                    className="text-red-600 hover:text-red-800"
+                    title="Delete Post"
+                  >
+                    <img
+                      src="/assets/icons/delete.svg"
+                      alt="delete"
+                      width={24}
+                      height={24}
+                    />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           <hr className="border-gray-300 mb-4" />

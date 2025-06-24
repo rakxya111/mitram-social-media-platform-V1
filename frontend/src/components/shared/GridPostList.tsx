@@ -1,9 +1,7 @@
 import { useUserContext } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import PostStats from "./PostStats";
-
 import type { Post } from "@/types";
-import { getImageUrl } from "@/lib/utils/image";
 
 type GridPostListProps = {
   posts: Post[];
@@ -19,9 +17,8 @@ const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostList
       {posts.map((post) => (
         <li key={post.id} className="relative min-w-80 h-80">
           <Link to={`/posts/${post.id}`} className="grid-post_link">
-            {/* ✅ Use helper for post image */}
             <img
-              src={getImageUrl(post.image)}
+              src={post.image || "/assets/icons/profile-placeholder.svg"}
               alt="post"
               className="h-full w-full object-cover"
             />
@@ -30,9 +27,8 @@ const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostList
           <div className="grid-post_user">
             {showUser && post.creator && (
               <div className="flex items-center gap-2 flex-1">
-                {/* ✅ Use helper for creator image */}
                 <img
-                  src={getImageUrl(post.creator.image)}
+                  src={post.creator.image || "/assets/icons/profile-placeholder.svg"}
                   alt={post.creator.name || "creator"}
                   className="h-8 w-8 rounded-full"
                 />

@@ -8,10 +8,8 @@ import GridPostList from "@/components/shared/GridPostList";
 import { Button } from "@/components/ui/button";
 import LikedPosts from "./LikedPosts";
 import type { IUser, Post } from "@/types";
-import { fetchUserPosts } from "@/lib/axios/api";
+import { fetchUserPosts } from "@/lib/axios/api";  // changed function name to clarify
 import { BACKEND_URL } from "@/constants";
-
-// StatBlock component for stats display
 const StatBlock = ({ value, label }: { value: string | number; label: string }) => (
   <div className="flex-center gap-2">
     <p className="small-semibold lg:body-bold text-primary-500">{value}</p>
@@ -19,18 +17,10 @@ const StatBlock = ({ value, label }: { value: string | number; label: string }) 
   </div>
 );
 
-// Helper to get full image URL or fallback placeholder
 const getFullImageUrl = (imagePath?: string) => {
   if (!imagePath) return "/assets/icons/profile-placeholder.svg";
-
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    return imagePath; // Already full URL
-  }
-
-  return `${BACKEND_URL}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+  return `${BACKEND_URL}${imagePath}`;
 };
-
-console.log(getFullImageUrl);
 
 const Profile = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,11 +39,9 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        // Fetch user data
         const data = await userQueries.getUser(id);
         setCurrentUser(data);
 
-        // Fetch user's posts
         const postsRes = await fetchUserPosts(Number(id));
         setPosts(postsRes.data.results || postsRes.data);
       } catch (error) {
@@ -79,7 +67,6 @@ const Profile = () => {
     <div className="profile-container">
       <div className="profile-inner_container">
         <div className="flex xl:flex-row flex-col max-xl:items-center flex-1 gap-7">
-          {/* Profile Image */}
           <img
             src={getFullImageUrl(currentUser.image)}
             alt="profile"
@@ -98,14 +85,8 @@ const Profile = () => {
 
             <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
               <StatBlock value={currentUser.posts_count ?? 0} label="Posts" />
-              <StatBlock
-                value={(currentUser.followers?.length ?? 0) || 20}
-                label="Followers"
-              />
-              <StatBlock
-                value={(currentUser.following?.length ?? 0) || 20}
-                label="Following"
-              />
+              <StatBlock value={(currentUser.followers?.length ?? 0) || 20} label="Followers" />
+              <StatBlock value={(currentUser.following?.length ?? 0) || 20} label="Following" />
             </div>
 
             <p className="small-medium md:base-medium text-center xl:text-left mt-7 max-w-screen-sm">
@@ -113,7 +94,6 @@ const Profile = () => {
             </p>
           </div>
 
-          {/* Edit Profile Button if current user is the profile owner */}
           <div className="flex justify-center gap-4">
             {user.id === currentUser.id ? (
               <Link
@@ -132,7 +112,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Tabs for Posts and Liked Posts */}
       {user.id === currentUser.id && (
         <div className="flex max-w-5xl w-full">
           <Link
@@ -156,10 +135,11 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Routes to render posts or liked posts */}
       <Routes>
         <Route index element={<GridPostList posts={posts} showUser={false} />} />
-        {user.id === currentUser.id && <Route path="liked-posts" element={<LikedPosts />} />}
+        {user.id === currentUser.id && (
+          <Route path="liked-posts" element={<LikedPosts />} />
+        )}
       </Routes>
 
       <Outlet />
