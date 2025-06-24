@@ -27,6 +27,7 @@ type IContextType = {
   loginWithCredentials: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
+
 const INITIAL_STATE: IContextType = {
   user: INITIAL_USER,
   isLoading: false,
@@ -38,7 +39,6 @@ const INITIAL_STATE: IContextType = {
   loginWithCredentials: async () => {},
   logout: () => {},
 };
-
 
 const AuthContext = createContext<IContextType>(INITIAL_STATE);
 
@@ -59,13 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
   };
 
+  // Helper to check if URL is full (Cloudinary or any full URL)
+  const isFullUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
+
   const checkAuthUser = async (): Promise<boolean> => {
     console.log("checkAuthUser called");
-    
+
     try {
       const token = localStorage.getItem("access");
       console.log("checkAuthUser token:", token);
-      
+
       if (!token) {
         console.log("No token found, setting user as unauthenticated");
         setUser(INITIAL_USER);
@@ -86,7 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: res.data.name,
         username: res.data.username,
         email: res.data.email,
-        image: res.data.image ? getImageUrl(res.data.image) : "",
+        image: res.data.image
+          ? (isFullUrl(res.data.image) ? res.data.image : getImageUrl(res.data.image))
+          : "",
         bio: res.data.bio || "",
         posts: res.data.posts || [],
         followers: res.data.followers || [],
@@ -113,20 +118,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("Starting login process...");
       setIsLoading(true);
-      
+
       // Store tokens
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       // Check auth and get user data
       const isValid = await checkAuthUser();
-      
+
       console.log("Login completed, isAuthenticated:", isValid);
 
       if (!isValid) {
         throw new Error("Failed to authenticate after login");
       }
-      
+
       console.log("Login successful - auth state updated");
     } catch (error) {
       console.error("Login failed:", error);
@@ -144,17 +149,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("🔐 Starting full login process...");
       setIsLoading(true);
-      
+
       // Call login API
       const response = await axiosInstance.post("auth/login/", { email, password });
       console.log("✅ Login API response received");
 
       // Extract tokens
       const { access, refresh } = response.data.tokens;
-      
+
       // Store tokens and update auth state
       await login(access, refresh);
-      
+
       console.log("✅ Full login process completed");
     } catch (error) {
       console.error("❌ Full login failed:", error);
@@ -185,21 +190,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Handle navigation after authentication state changes
   useEffect(() => {
     console.log("Navigation useEffect - hasInitialCheck:", hasInitialCheck, "isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
-    
+
     // Only navigate after initial check is complete
     if (hasInitialCheck && !isLoading) {
       const currentPath = window.location.pathname;
       console.log("Current path:", currentPath);
-      
+
       if (isAuthenticated) {
         // If user is authenticated and on auth pages, redirect to home
-        if (currentPath === '/sign-in' || currentPath === '/sign-up') {
+        if (currentPath === "/sign-in" || currentPath === "/sign-up") {
           console.log("User authenticated, navigating from auth page to home");
           navigate("/", { replace: true });
         }
       } else {
         // If user is not authenticated and trying to access protected routes
-        if (currentPath !== '/sign-in' && currentPath !== '/sign-up') {
+        if (currentPath !== "/sign-in" && currentPath !== "/sign-up") {
           console.log("User not authenticated, redirecting to sign-in");
           navigate("/sign-in", { replace: true });
         }
@@ -215,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated,
     checkAuthUser,
     login,
-    loginWithCredentials, // Add this new method
+    loginWithCredentials,
     logout,
   };
 

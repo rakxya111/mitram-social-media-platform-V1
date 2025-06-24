@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
-import { BACKEND_URL } from "@/constants";
+import { getImageUrl } from "@/lib/utils/image";
 
-// Define the correct user type
+
 type UserCardProps = {
   user: {
     id: number | string;
@@ -12,14 +12,12 @@ type UserCardProps = {
   };
 };
 
-
-
-
 const UserCard = ({ user }: UserCardProps) => {
   return (
-   <Link to={`/profile/${user.id}`} className="user-card">
+    <Link to={`/profile/${user.id}`} className="user-card">
+      {/* ✅ Use helper for image */}
       <img
-        src={user.image ? `${BACKEND_URL}${user.image}` : "/assets/icons/profile-placeholder.svg"}
+        src={getImageUrl(user.image)}
         alt="creator"
         className="rounded-full w-14 h-14"
       />

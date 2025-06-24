@@ -1,15 +1,15 @@
-import { Link, NavLink,  useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useUserContext } from "@/context/AuthContext";
 import { sidebarLinks } from "@/constants";
+
 import type { INavLink } from "@/types";
+import { getImageUrl } from "@/lib/utils/image";
 
 const LeftSidebar = () => {
   const { pathname } = useLocation();
-  
   const { user, logout } = useUserContext();
 
-  // Logout handler
   const handleLogout = () => {
     logout();
   };
@@ -27,12 +27,12 @@ const LeftSidebar = () => {
         </Link>
 
         <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
+          {/* ✅ Use helper for user image */}
           <img
-            src={user?.image || "/assets/icons/profile-picture.svg"}
+            src={getImageUrl(user?.image)}
             alt="profile"
             className="h-14 w-14 rounded-full"
           />
-
           <div className="flex flex-col">
             <p className="body-bold">{user?.name || "Guest User"}</p>
             <p className="small-regular text-light-3">@{user?.username || "guest"}</p>
