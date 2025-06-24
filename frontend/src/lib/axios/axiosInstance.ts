@@ -1,7 +1,8 @@
 import axios from "axios";
 import type { AxiosRequestConfig } from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/";
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/";
 
 // Create main Axios instance
 const axiosInstance = axios.create({
@@ -22,7 +23,9 @@ axiosInstance.interceptors.request.use(
     ];
 
     // Normalize url path without leading slash for matching
-    const urlPath = config.url?.startsWith("/") ? config.url.slice(1) : config.url;
+    const urlPath = config.url?.startsWith("/")
+      ? config.url.slice(1)
+      : config.url;
 
     const isAuthFree = authFreeEndpoints.some((endpoint) =>
       urlPath?.endsWith(endpoint)
@@ -30,7 +33,9 @@ axiosInstance.interceptors.request.use(
 
     if (token && !isAuthFree) {
       config.headers = config.headers ?? {};
-      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+      (config.headers as Record<string, string>)[
+        "Authorization"
+      ] = `Bearer ${token}`;
     }
 
     return config;
@@ -42,8 +47,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-    const isRefreshEndpoint = originalRequest.url?.includes("auth/token/refresh/");
+    const originalRequest = error.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
+    const isRefreshEndpoint = originalRequest.url?.includes(
+      "auth/token/refresh/"
+    );
 
     if (
       error.response?.status === 401 &&
@@ -55,23 +64,22 @@ axiosInstance.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const res = await axios.post(
-            `${baseURL}auth/token/refresh/`,
-            { refresh: refreshToken }
-          );
+          const refreshUrl = `${baseURL.replace(
+            /\/+$/,
+            ""
+          )}/auth/token/refresh/`;
+          const res = await axios.post(refreshUrl, { refresh: refreshToken });
 
           const { access } = res.data;
           localStorage.setItem("access", access);
 
-          // Ensure headers exist
           originalRequest.headers = originalRequest.headers ?? {};
-          // Update Authorization header with new access token
-          (originalRequest.headers as Record<string, string>)["Authorization"] = `Bearer ${access}`;
+          (originalRequest.headers as Record<string, string>)[
+            "Authorization"
+          ] = `Bearer ${access}`;
 
-          // Retry the original request with new token
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          // Token refresh failed - clear tokens and redirect to login
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
           window.location.href = "/sign-in";
