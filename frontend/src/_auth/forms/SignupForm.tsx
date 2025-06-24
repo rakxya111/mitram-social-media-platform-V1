@@ -1,4 +1,11 @@
-import {Form,FormControl,FormField,FormItem,FormLabel,FormMessage,} from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,55 +18,56 @@ import axiosInstance from "@/lib/axios/axiosInstance";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-
 const SignupForm = () => {
-
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Define your form.
-
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
     defaultValues: {
-      name: '',
+      name: "",
       username: "",
-      email:'',
-      password: '',
-      password_confirm: '',
+      email: "",
+      password: "",
+      password_confirm: "",
     },
   });
 
-  
   const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
     setIsLoading(true);
-   try{
-    const res = await axiosInstance.post("auth/register/",values);
-    console.log("Registered:", res.data);
-    toast({title : "Account created successfully! Please log in."});
-    navigate("/sign-in");
-   }catch (err: any) {
-  if (err.response && err.response.data) {
-    console.log("Signup error:", err.response.data);
-      toast({title : "Something went wrong. Please try again."});
-  } else {
-    console.log("Signup error:", err.message);
-    toast({title : "Signup error"});
-  }
-}
-
+    try {
+      const res = await axiosInstance.post("auth/register/", values);
+      console.log("Registered:", res.data);
+      toast({ title: "Account created successfully! Please log in." });
+      navigate("/sign-in");
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        console.log("Signup error:", err.response.data);
+        // Show combined backend error messages if present
+        const message = Object.values(err.response.data)
+          .flat()
+          .join(" ") || "Something went wrong. Please try again.";
+        toast({ title: message });
+      } else {
+        console.log("Signup error:", err.message);
+        toast({ title: "Signup error" });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
+    <Form {...form}>
+      <div className="sm:w-420 flex-center flex-col">
+        <img src="/assets/images/Ram.svg" alt="logo" height={200} />
 
-      <Form {...form}>
-        <div className="sm:w-420 flex-center flex-col">
-            <img src="/assets/images/Ram.svg" alt="logo" height={200}/>
+        <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">Create a new Account</h2>
+        <p className="text-light-3 small-medium md:base-regular ">
+          To use Mitram, please do enter your details
+        </p>
 
-            <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">Create a new Account</h2>
-            <p className="text-light-3 small-medium md:base-regular ">To use Mitram, please do enter your details </p>
-      
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex-col gap-5 w-full">
           <FormField
             control={form.control}
@@ -69,13 +77,13 @@ const SignupForm = () => {
                 <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Input type="text" className="shad-input" {...field} />
-                </FormControl>    
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-        <FormField
+          <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
@@ -83,7 +91,7 @@ const SignupForm = () => {
                 <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input type="text" className="shad-input" {...field} />
-                </FormControl>    
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -97,7 +105,7 @@ const SignupForm = () => {
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input type="email" className="shad-input" {...field} />
-                </FormControl>    
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -111,7 +119,7 @@ const SignupForm = () => {
                 <FormLabel>Password</FormLabel>
                 <FormControl>
                   <Input type="password" className="shad-input" {...field} />
-                </FormControl>    
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -131,21 +139,32 @@ const SignupForm = () => {
             )}
           />
 
-         
-          <Button type="submit" className="shad-button_primary mt-5">
+          <Button
+            type="submit"
+            className="shad-button_primary mt-5"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <div className="flex-center gap-2">
-               <Loader/> Loading......
+                <Loader /> Loading......
               </div>
-            ): "Sign up"}
+            ) : (
+              "Sign up"
+            )}
           </Button>
+
           <p className="text-small-regular text-center mt-2">
-            Already have an account <Link to='/sign-in' className="text-primary-500 text-small-semibold ml-1 underline underline-offset-2">Log in</Link>
+            Already have an account{" "}
+            <Link
+              to="/sign-in"
+              className="text-primary-500 text-small-semibold ml-1 underline underline-offset-2"
+            >
+              Log in
+            </Link>
           </p>
         </form>
-          </div>
-      </Form>
- 
+      </div>
+    </Form>
   );
 };
 
