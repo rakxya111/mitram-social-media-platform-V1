@@ -7,11 +7,9 @@ import type {
   IUser,
   Post,
   Comment,
-
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from "axios";
-
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/',
@@ -21,7 +19,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access");
 
-    // Auth-free endpoints (adjusted for /auth/ prefix)
+    // Auth-free endpoints - no auth header needed
     const authFreeEndpoints = [
       "auth/login/",
       "auth/register/",
@@ -41,7 +39,6 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle 401 errors and token refresh
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -105,6 +102,15 @@ const ENDPOINTS = {
     USER_PROFILE: 'auth/user/',
     REFRESH: 'auth/token/refresh/',
   },
+  USERS: {
+    PROFILE: (id: string) => `auth/users/${id}/`,
+    UPDATE: (id: string) => `auth/users/update/${id}/`,
+    LIST: 'auth/users/list/',
+    FOLLOW: (id: string) => `users/${id}/follow/`,
+    UNFOLLOW: (id: string) => `users/${id}/unfollow/`,
+    FOLLOWERS: (id: string) => `users/${id}/followers/`,
+    FOLLOWING: (id: string) => `users/${id}/following/`,
+  },
   POSTS: {
     LIST: 'posts/',
     DETAIL: (id: string) => `posts/${id}/`,
@@ -112,21 +118,12 @@ const ENDPOINTS = {
     UPDATE: (id: string) => `posts/${id}/`,
     DELETE: (id: string) => `posts/${id}/delete/`,
     LIKE: (id: string) => `posts/${id}/like/`,
-    // Assuming your backend toggles like/unlike on same endpoint
-    UNLIKE: (id: string) => `posts/${id}/like/`,
   },
   COMMENTS: {
     LIST: (postId: string) => `posts/${postId}/comments/`,
     CREATE: (postId: string) => `posts/${postId}/comments/create/`,
     UPDATE: (postId: string, commentId: string) => `posts/${postId}/comments/${commentId}/update/`,
     DELETE: (postId: string, commentId: string) => `posts/${postId}/comments/${commentId}/delete/`
-  },
-  USERS: {
-    PROFILE: (id: string) => `auth/users/${id}/`,   
-    FOLLOW: (id: string) => `users/${id}/follow/`,
-    UNFOLLOW: (id: string) => `users/${id}/unfollow/`,
-    FOLLOWERS: (id: string) => `users/${id}/followers/`,
-    FOLLOWING: (id: string) => `users/${id}/following/`
   },
   MEDIA: {
     UPLOAD: 'media/upload/'
@@ -144,7 +141,7 @@ const tokenManager = {
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
   },
-  isAuthenticated: () => !!localStorage.getItem('access')
+  isAuthenticated: () => !!localStorage.getItem('access'),
 };
 
 // ─── AUTH ────────────────────────────────
@@ -188,7 +185,6 @@ export interface UpdateProfileData {
   image?: File; // optional
 }
 
-
 export const updateProfile = async (userId: string, data: UpdateProfileData) => {
   const formData = new FormData();
   formData.append('name', data.name);
@@ -197,7 +193,7 @@ export const updateProfile = async (userId: string, data: UpdateProfileData) => 
     formData.append('image', data.image);
   }
 
-  const response = await axiosInstance.patch(`/auth/users/update/${userId}/`, formData, {
+  const response = await axiosInstance.patch(ENDPOINTS.USERS.UPDATE(userId), formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -205,6 +201,7 @@ export const updateProfile = async (userId: string, data: UpdateProfileData) => 
 
   return response.data;
 };
+
 // ─── POSTS ───────────────────────────────
 export const postQueries = {
   getAllPosts: async (page = 1, limit = 10): Promise<{ results: Post[]; count: number; next: string | null; previous: string | null }> => {
@@ -248,22 +245,6 @@ export const postQueries = {
   },
 };
 
-export const getUsers = async (): Promise<IUser[]> => {
-  const response = await axiosInstance.get("/auth/users/"); // URL should match your Django backend
-  return response.data; // Must be an array of users
-};
-
-// ✅ GET all users
-export const useGetUsers = () => {
-  return useQuery({
-    queryKey: ['getUsers'],
-    queryFn: async () => {
-      const res = await axiosInstance.get('/auth/users/list/');
-      return res.data;
-    },
-  });
-};
-
 // ─── COMMENTS ───────────────────────────────
 export const commentQueries = {
   getComments: async (postId: string): Promise<Comment[]> => {
@@ -290,6 +271,11 @@ export const commentQueries = {
 export const userQueries = {
   getUser: async (id: string): Promise<IUser> => {
     const res = await api.get<IUser>(ENDPOINTS.USERS.PROFILE(id));
+    return res.data;
+  },
+
+  listUsers: async (): Promise<IUser[]> => {
+    const res = await api.get<IUser[]>(ENDPOINTS.USERS.LIST);
     return res.data;
   },
 
@@ -336,23 +322,30 @@ export const apiUtils = {
   }
 };
 
+// React Query Hooks Examples
+export const useGetUsers = () => {
+  return useQuery({
+    queryKey: ['getUsers'],
+    queryFn: userQueries.listUsers,
+  });
+};
+
 export const useGetPosts = () => {
   return useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
-      const res = await axiosInstance.get<{ results: Post[] }>("posts/");
+      const res = await axiosInstance.get<{ results: Post[] }>(ENDPOINTS.POSTS.LIST);
       return res.data.results;
     },
   });
 };
 
-// Search posts
 export const useSearchPosts = (search: string) => {
   return useQuery({
     queryKey: ["searchPosts", search],
     queryFn: async () => {
-      const res = await axiosInstance.get(`posts/?search=${search}`);
-      return res.data.results; // return only the array
+      const res = await axiosInstance.get(`${ENDPOINTS.POSTS.LIST}?search=${search}`);
+      return res.data.results;
     },
     enabled: !!search,
   });
@@ -364,7 +357,6 @@ export const useUpdateProfile = (userId: string) => {
   });
 };
 
-
 // ─── EXPORTS ───────────────────────────────
 export {
   authQueries as auth,
@@ -373,4 +365,3 @@ export {
   userQueries as users,
   apiUtils as utils
 };
-

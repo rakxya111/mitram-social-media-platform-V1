@@ -35,7 +35,10 @@ export const logoutUser = () => {
 };
 
 // Make sure this matches your backend URL for current user profile
-export const getUserProfile = () => axiosInstance.get('auth/user/');
+// Make sure this matches your backend URL for current user profile
+export const getUserProfile = () => axiosInstance.get('user/');
+
+
 
 export const updateUserProfile = (data: { bio?: string; image?: File }) => {
   const formData = new FormData();
