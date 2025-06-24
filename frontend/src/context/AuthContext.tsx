@@ -1,3 +1,5 @@
+// AuthContext.tsx
+
 import { useNavigate } from "react-router-dom";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -47,6 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Or better yet, create a helper function:
+const getImageUrl = (imagePath: string) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/', '') || 'http://localhost:8000';
+  return `${baseUrl}${imagePath}`;
+};
+
   // Check if access token is valid and fetch user profile
   const checkAuthUser = async (): Promise<boolean> => {
     setIsLoading(true);
@@ -70,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: userData.name,
         username: userData.username,
         email: userData.email,
-        image: userData.image ? `http://localhost:8000${userData.image}` : "",
+        image: userData.image ? getImageUrl(userData.image) : "",
         bio: userData.bio || "",
         posts: userData.posts || [],
         followers: userData.followers || [],

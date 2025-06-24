@@ -14,7 +14,14 @@ SECRET_KEY = os.environ.get(
     "django-insecure-07lg$wpd*^_*k2&-ot=tv=7kxer%#bwtfcev)k!ou)i!bhq=0#"
 )
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ["*"]  # Change this in production to your domain(s)
+
+# Update ALLOWED_HOSTS
+
+ALLOWED_HOSTS = [
+    "localhost", 
+    "127.0.0.1", 
+    "https://mitram-social-media-platform-v1.onrender.com",  # ⚠️ REPLACE WITH YOUR ACTUAL RENDER URL
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -154,8 +161,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://mitram-social-media-platform-v1.vercel.app/",
 ]
-CORS_ALLOW_ALL_ORIGINS = True  # Set to False if you want to restrict origins
+
+
+CORS_ALLOW_ALL_ORIGINS = False  # ⚠️ Set to False for production
 CORS_ALLOW_CREDENTIALS = True
 
 AUTHENTICATION_BACKENDS = [
