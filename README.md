@@ -38,15 +38,18 @@ Mitram is a feature-rich full-stack social media web application where users can
 
 ## 🚀 Demo
 
+
+📽️ **Video Demo:**  
+[Watch on Google Drive](https://drive.google.com/file/d/1_MQab_OHkIwPJ30AltDs5QBhSXBStjmS/view?usp=drive_link)
+
 🌐 **Live URL:**  
-[https://mitram-social-media-platform-v1.vercel.app/](https://mitram-social-media-platform-v1.vercel.app/) 
+[https://mitram-social-media-platform-v1.vercel.app/](https://mitram-social-media-platform-v1.vercel.app/) </br>
+
 🖼️ **Note:**  
 Images are currently not visible due to backend hosting on Render.  
 Integration with Cloudinary for image hosting is planned.  
 **Cloudinary coming one day — for now, that’s it!**
 
-📽️ **Video Demo:**  
-[Watch on Google Drive](https://drive.google.com/file/d/1_MQab_OHkIwPJ30AltDs5QBhSXBStjmS/view?usp=drive_link)
 
 
 
