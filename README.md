@@ -40,7 +40,7 @@ Mitram is a feature-rich full-stack social media web application where users can
 
 
 📽️ **Video Demo:**  
-[Watch on Google Drive](https://drive.google.com/file/d/1_MQab_OHkIwPJ30AltDs5QBhSXBStjmS/view?usp=drive_link)
+[Watch on Youtube](https://youtu.be/SHvZ9y6XHSw)
 
 🌐 **Live URL:**  
 [https://mitram-social-media-platform-v1.vercel.app/](https://mitram-social-media-platform-v1.vercel.app/) </br>
